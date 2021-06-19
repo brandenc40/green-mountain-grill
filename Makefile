@@ -1,12 +1,15 @@
 BINARY_NAME=gmg
 
-.PHONY: clean
-clean:
-	@rm ${BINARY_NAME}
+.PHONY: default
+default: clean generate build
 
 .PHONY: build
 build:
 	@go build -o ${BINARY_NAME} main.go
+
+.PHONY: clean
+clean:
+	@rm ${BINARY_NAME}
 
 .PHONY: test
 test:
@@ -23,3 +26,15 @@ run: build
 .PHONY: run-dev
 run-dev: build
 	@ENVIRONMENT=development ./${BINARY_NAME}
+
+.PHONY: generate
+generate: .gen .tidy
+
+.PHONY: .gen
+.gen:
+	@go get github.com/alvaroloes/enumer
+	@go generate -x ./...
+
+.PHONY: .tidy
+.tidy:
+	@go mod tidy
