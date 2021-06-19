@@ -12,9 +12,11 @@ in 2021. I'm  not sure if this will work properly on other models.__
 > for doing a lot of the leg work on figuring out the commands to send and the 
 > data returned by the grill.
 
+### Feel free to assist with building this codebase, any help would be appreciated
+
 ## Grill State Data Parse
 ```
-GRILL OFF
+EXAMPLE: GRILL OFF
 INDEX:  0  1  2  3 4  5 6   7 8 9  10 11 12 13 14 15 16 17 18 19 20  21  22  23  24 25 26 27 28 29 30 31 32 33 34 35
 BYTES: [85 82 97 0 89 2 150 0 5 11 20 50 25 25 25 25 89  2  0  0 255 255 255 255 0  0  0  0  0  0  0  0  1  0  0  3 ]
 
