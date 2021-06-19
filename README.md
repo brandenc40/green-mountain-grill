@@ -8,6 +8,10 @@ interacting with your Green Mountain Grill.
 __Note: this was tested on my grill which is a Daniel Boone Prime purchased 
 in 2021. I'm  not sure if this will work properly on other models.__
 
+> Shout out to https://github.com/Aenima4six2/gmg and https://github.com/FeatherKing/grillsrv 
+> for doing a lot of the leg work on figuring out the commands to send and the 
+> data returned by the grill.
+
 ## Grill State Data Parse
 ```
 GRILL OFF
