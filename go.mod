@@ -3,7 +3,6 @@ module github.com/brandenc40/gmg
 go 1.16
 
 require (
-	github.com/alvaroloes/enumer v1.1.2 // indirect
 	github.com/andybalholm/brotli v1.0.3 // indirect
 	github.com/fasthttp/router v1.3.14
 	github.com/klauspost/compress v1.13.1 // indirect
