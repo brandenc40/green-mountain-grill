@@ -20,7 +20,8 @@ type Client interface {
 	GetID() ([]byte, error)
 	GetFirmware() ([]byte, error)
 	SetGrillTemp(temp int) error
-	SetProbeTemp(temp int) error
+	SetProbe1Target(temp int) error
+	SetProbe2Target(temp int) error
 	PowerOn() error
 	PowerOff() error
 	BroadcastToClientMode(ssid, password string) ([]byte, error)
@@ -83,9 +84,15 @@ func (g *grillClient) SetGrillTemp(temp int) error {
 	return err
 }
 
-// SetProbeTemp -
-func (g *grillClient) SetProbeTemp(temp int) error {
-	_, err := g.sendCommand(CommandSetProbeTemp, temp)
+// SetProbe1Target -
+func (g *grillClient) SetProbe1Target(temp int) error {
+	_, err := g.sendCommand(CommandSetProbe1Temp, temp)
+	return err
+}
+
+// SetProbe2Target -
+func (g *grillClient) SetProbe2Target(temp int) error {
+	_, err := g.sendCommand(CommandSetProbe2Temp, temp)
 	return err
 }
 

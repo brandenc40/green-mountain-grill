@@ -7,9 +7,10 @@ type Command string
 
 // Commands that are accepted by the Green Mountain Grill
 const (
-	CommandGetInfo               Command = "UR001!"
-	CommandSetGrillTemp          Command = "UT%d!"
-	CommandSetProbeTemp          Command = "UF%d!"
+	CommandGetInfo               Command = "URCV!"
+	CommandSetGrillTemp          Command = "UT%03d!"
+	CommandSetProbe1Temp         Command = "UF%03d!"
+	CommandSetProbe2Temp         Command = "Uf%03d!"
 	CommandPowerOn               Command = "UK001!"
 	CommandPowerOff              Command = "UK004!"
 	CommandGetGrillID            Command = "UL!"
