@@ -43,8 +43,8 @@ func GetGrillInfoResponseToGrillInfo(response []byte) *State {
 
 func getTempWithHighVal(data []byte, tmpIdx, highIdx int) int {
 	high := int(data[highIdx])
+	// a high value of 2 represents that the temp is not available
 	if high == 2 {
-		// 2 represents that the target temp is not set
 		return 0
 	}
 	return int(data[tmpIdx]) + high*256

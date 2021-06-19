@@ -10,19 +10,19 @@ import (
 )
 
 const (
-	_WarnCodeName_0 = "WarnCodeNoneWarnCodeAugerOverloadedWarnCodeIgniterOverloadedWarnCodeBatteryLowWarnCodeFanDisconnectedWarnCodeAugerDisconnectedWarnCodeIgniterDisconnected"
+	_WarnCodeName_0 = "WarnCodeNone"
 	_WarnCodeName_1 = "WarnCodeLowPellet"
 )
 
 var (
-	_WarnCodeIndex_0 = [...]uint8{0, 12, 35, 60, 78, 101, 126, 153}
+	_WarnCodeIndex_0 = [...]uint8{0, 12}
 	_WarnCodeIndex_1 = [...]uint8{0, 17}
 )
 
 func (i WarnCode) String() string {
 	switch {
-	case 0 <= i && i <= 6:
-		return _WarnCodeName_0[_WarnCodeIndex_0[i]:_WarnCodeIndex_0[i+1]]
+	case i == 0:
+		return _WarnCodeName_0
 	case i == 128:
 		return _WarnCodeName_1
 	default:
@@ -30,17 +30,11 @@ func (i WarnCode) String() string {
 	}
 }
 
-var _WarnCodeValues = []WarnCode{0, 1, 2, 3, 4, 5, 6, 128}
+var _WarnCodeValues = []WarnCode{0, 128}
 
 var _WarnCodeNameToValueMap = map[string]WarnCode{
-	_WarnCodeName_0[0:12]:    0,
-	_WarnCodeName_0[12:35]:   1,
-	_WarnCodeName_0[35:60]:   2,
-	_WarnCodeName_0[60:78]:   3,
-	_WarnCodeName_0[78:101]:  4,
-	_WarnCodeName_0[101:126]: 5,
-	_WarnCodeName_0[126:153]: 6,
-	_WarnCodeName_1[0:17]:    128,
+	_WarnCodeName_0[0:12]: 0,
+	_WarnCodeName_1[0:17]: 128,
 }
 
 // WarnCodeString retrieves an enum value from the enum constants string name.
