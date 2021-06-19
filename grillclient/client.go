@@ -23,8 +23,8 @@ type Client interface {
 	SetProbe1Target(temp int) error
 	SetProbe2Target(temp int) error
 	PowerOn() error
+	PowerOnColdSmoke() error
 	PowerOff() error
-	BroadcastToClientMode(ssid, password string) ([]byte, error)
 }
 
 // Params -
@@ -102,19 +102,16 @@ func (g *grillClient) PowerOn() error {
 	return err
 }
 
+// PowerOnColdSmoke -
+func (g *grillClient) PowerOnColdSmoke() error {
+	_, err := g.sendCommand(CommandPowerOnColdSmoke)
+	return err
+}
+
 // PowerOff -
 func (g *grillClient) PowerOff() error {
 	_, err := g.sendCommand(CommandPowerOff)
 	return err
-}
-
-// BroadcastToClientMode -
-func (g *grillClient) BroadcastToClientMode(ssid, password string) ([]byte, error) {
-	response, err := g.sendCommand(CommandBroadcastToClientMode, 0, len(ssid), ssid, len(password), password)
-	if err != nil {
-		return nil, err
-	}
-	return response, nil
 }
 
 func (g *grillClient) sendCommand(command Command, args ...interface{}) ([]byte, error) {
@@ -126,7 +123,7 @@ func (g *grillClient) sendCommand(command Command, args ...interface{}) ([]byte,
 	defer g.safeCloseConn(conn)
 
 	// write the command to the udp connection
-	cmd := command.Bytes(args...)
+	cmd := command.Build(args...)
 	n, err := conn.Write(cmd) // note: udp writes without confirmation of data transfer so this is non blocking
 	if err != nil {
 		return nil, err

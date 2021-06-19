@@ -9,9 +9,9 @@ import (
 	"fmt"
 )
 
-const _PowerStateName = "PowerStateOffPowerStateOnPowerStateFanPowerStateRemain"
+const _PowerStateName = "PowerStateOffPowerStateOnPowerStateFanPowerStateColdSmoke"
 
-var _PowerStateIndex = [...]uint8{0, 13, 25, 38, 54}
+var _PowerStateIndex = [...]uint8{0, 13, 25, 38, 57}
 
 func (i PowerState) String() string {
 	if i < 0 || i >= PowerState(len(_PowerStateIndex)-1) {
@@ -26,7 +26,7 @@ var _PowerStateNameToValueMap = map[string]PowerState{
 	_PowerStateName[0:13]:  0,
 	_PowerStateName[13:25]: 1,
 	_PowerStateName[25:38]: 2,
-	_PowerStateName[38:54]: 3,
+	_PowerStateName[38:57]: 3,
 }
 
 // PowerStateString retrieves an enum value from the enum constants string name.

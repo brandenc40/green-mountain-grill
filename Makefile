@@ -10,7 +10,11 @@ build:
 
 .PHONY: test
 test:
-	@go test -v main.go
+	@go test ./... -coverprofile cp.out
+
+.PHONY: coverage
+coverage: test
+	@go tool cover -html=cp.out
 
 .PHONY: run
 run: build

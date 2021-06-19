@@ -13,6 +13,11 @@ type State struct {
 	FireState               FireState  `json:"fire_state"`
 }
 
+// IsOn - true if the grill is turned on
+func (s *State) IsOn() bool {
+	return s.PowerState == PowerStateOn || s.PowerState == PowerStateColdSmoke
+}
+
 // PowerState -
 //go:generate enumer -type=PowerState -json -sql
 type PowerState int
@@ -22,7 +27,7 @@ const (
 	PowerStateOff PowerState = iota
 	PowerStateOn
 	PowerStateFan
-	PowerStateRemain
+	PowerStateColdSmoke
 )
 
 // FireState -
@@ -37,6 +42,7 @@ const (
 	FireStateRunning
 	FireStateCoolDown
 	FireStateFail
+	FireStateColdSmoke FireState = 198
 )
 
 // WarnCode -

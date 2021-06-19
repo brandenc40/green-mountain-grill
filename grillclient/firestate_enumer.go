@@ -9,26 +9,37 @@ import (
 	"fmt"
 )
 
-const _FireStateName = "FireStateDefaultFireStateOffFireStateStartupFireStateRunningFireStateCoolDownFireStateFail"
+const (
+	_FireStateName_0 = "FireStateDefaultFireStateOffFireStateStartupFireStateRunningFireStateCoolDownFireStateFail"
+	_FireStateName_1 = "FireStateColdSmoke"
+)
 
-var _FireStateIndex = [...]uint8{0, 16, 28, 44, 60, 77, 90}
+var (
+	_FireStateIndex_0 = [...]uint8{0, 16, 28, 44, 60, 77, 90}
+	_FireStateIndex_1 = [...]uint8{0, 18}
+)
 
 func (i FireState) String() string {
-	if i < 0 || i >= FireState(len(_FireStateIndex)-1) {
+	switch {
+	case 0 <= i && i <= 5:
+		return _FireStateName_0[_FireStateIndex_0[i]:_FireStateIndex_0[i+1]]
+	case i == 198:
+		return _FireStateName_1
+	default:
 		return fmt.Sprintf("FireState(%d)", i)
 	}
-	return _FireStateName[_FireStateIndex[i]:_FireStateIndex[i+1]]
 }
 
-var _FireStateValues = []FireState{0, 1, 2, 3, 4, 5}
+var _FireStateValues = []FireState{0, 1, 2, 3, 4, 5, 198}
 
 var _FireStateNameToValueMap = map[string]FireState{
-	_FireStateName[0:16]:  0,
-	_FireStateName[16:28]: 1,
-	_FireStateName[28:44]: 2,
-	_FireStateName[44:60]: 3,
-	_FireStateName[60:77]: 4,
-	_FireStateName[77:90]: 5,
+	_FireStateName_0[0:16]:  0,
+	_FireStateName_0[16:28]: 1,
+	_FireStateName_0[28:44]: 2,
+	_FireStateName_0[44:60]: 3,
+	_FireStateName_0[60:77]: 4,
+	_FireStateName_0[77:90]: 5,
+	_FireStateName_1[0:18]:  198,
 }
 
 // FireStateString retrieves an enum value from the enum constants string name.
