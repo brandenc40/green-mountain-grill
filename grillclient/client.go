@@ -29,7 +29,7 @@ type Client interface {
 
 // Params -
 type Params struct {
-	IP        net.IP
+	GrillIP   net.IP
 	GrillPort int
 	Logger    *logrus.Logger
 }
@@ -38,7 +38,7 @@ type Params struct {
 func New(c Params) Client {
 	client := &grillClient{
 		grillAddr: &net.UDPAddr{
-			IP:   c.IP,
+			IP:   c.GrillIP,
 			Port: c.GrillPort,
 		},
 		logger: c.Logger,

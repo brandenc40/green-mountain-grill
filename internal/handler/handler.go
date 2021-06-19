@@ -30,7 +30,7 @@ type Params struct {
 func New(p Params) *Handler {
 	return &Handler{
 		grill: grillclient.New(grillclient.Params{
-			IP:        p.GrillIP,
+			GrillIP:   p.GrillIP,
 			GrillPort: p.GrillPort,
 			Logger:    p.Logger,
 		}),
