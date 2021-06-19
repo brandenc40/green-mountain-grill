@@ -3,7 +3,9 @@
 ### Observe and Control your grill from Go
 
 The `grillclient` package can be used as a universal client for 
-interacting with your Green Mountain Grill.
+interacting with your Green Mountain Grill. On top of this I have also started to
+build out a simple HTTP client for getting the current state of the grill. I'll be building
+out more features in the HTTP client.
 
 __Note: this was tested on my grill which is a Daniel Boone Prime purchased 
 in 2021. I'm  not sure if this will work properly on other models.__
