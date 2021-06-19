@@ -44,7 +44,12 @@ const (
 type WarnCode int
 
 // WarnCode enum values
+// TODO: VALIDATE, CURRENTLY NOT VALIDATED FOR ALL ERROR CODES
 const (
-	WarnCodeNone      WarnCode = iota
-	WarnCodeLowPellet WarnCode = 128
+	WarnCodeNone               WarnCode = 0
+	WarnCodeFanMotorOverload   WarnCode = 1
+	WarnCodeAugerMotorOverload WarnCode = 2
+	WarnCodeLowVoltage         WarnCode = 4
+	WarnCodeIgniterOverload    WarnCode = 8
+	WarnCodeLowPellet          WarnCode = 128
 )
