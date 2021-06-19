@@ -1,4 +1,4 @@
-# Green Mountain Grill [WIP]
+# Green Mountain Grill
 
 ### Observe and Control your grill from Go
 
@@ -12,7 +12,7 @@ in 2021. I'm  not sure if this will work properly on other models.__
 > for doing a lot of the leg work on figuring out the commands to send and the 
 > data returned by the grill.
 
-### Feel free to assist with building this codebase, any help would be appreciated
+### Still a work in progress so feel free to assist with building this codebase, any help would be appreciated
 
 ## Grill State Data Parse
 ```
