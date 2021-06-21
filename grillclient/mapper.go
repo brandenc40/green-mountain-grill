@@ -28,9 +28,9 @@ const (
 // GetStateResponseToState -
 func GetStateResponseToState(response []byte) *State {
 	state := &State{
-		WarnCode:                WarnCode(int(response[warnCode])),
+		WarnCode:                WarnCode(response[warnCode]),
 		PowerState:              PowerState(response[powerState]),
-		FireState:               FireState(int(response[fireState])),
+		FireState:               FireState(response[fireState]),
 		CurrentTemperature:      getTempWithHighVal(response, grillTemp, grillTempHigh),
 		TargetTemperature:       getTempWithHighVal(response, grillSetTemp, grillSetTempHigh),
 		Probe1Temperature:       getTempWithHighVal(response, probeTemp, probeTempHigh),

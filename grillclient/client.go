@@ -1,6 +1,7 @@
 package grillclient
 
 import (
+	"fmt"
 	"net"
 	"time"
 
@@ -59,6 +60,9 @@ func (g *grillClient) GetState() (*State, error) {
 	response, err := g.sendCommand(CommandGetInfo)
 	if err != nil {
 		return nil, err
+	}
+	if len(response) != 36 {
+		return nil, fmt.Errorf("expected 36 bytes, got %d", len(response))
 	}
 	return GetStateResponseToState(response), nil
 }
