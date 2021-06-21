@@ -25,8 +25,8 @@ const (
 	grillType         = 35 // not validated
 )
 
-// GetGrillInfoResponseToGrillInfo -
-func GetGrillInfoResponseToGrillInfo(response []byte) *State {
+// GetStateResponseToState -
+func GetStateResponseToState(response []byte) *State {
 	state := &State{
 		WarnCode:                WarnCode(int(response[warnCode])),
 		PowerState:              PowerState(response[powerState]),

@@ -43,6 +43,9 @@ func New(c Params) Client {
 		},
 		logger: c.Logger,
 	}
+	if c.Logger == nil {
+		client.logger = logrus.New()
+	}
 	return client
 }
 
@@ -57,7 +60,7 @@ func (g *grillClient) GetState() (*State, error) {
 	if err != nil {
 		return nil, err
 	}
-	return GetGrillInfoResponseToGrillInfo(response), nil
+	return GetStateResponseToState(response), nil
 }
 
 // GetID -
