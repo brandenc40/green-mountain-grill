@@ -28,6 +28,12 @@ func TestCommand_Build(t *testing.T) {
 			want: []byte("UT020!"),
 		},
 		{
+			name: "Int pads with 00",
+			c:    CommandSetGrillTemp,
+			args: args{[]interface{}{2}},
+			want: []byte("UT002!"),
+		},
+		{
 			name: "Command without args",
 			c:    CommandPowerOn,
 			args: args{[]interface{}{}},
