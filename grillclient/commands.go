@@ -21,7 +21,7 @@ const (
 // Build -
 func (c Command) Build(args ...interface{}) []byte {
 	if len(args) > 0 {
-		return []byte(fmt.Sprintf(string(c), args...))
+		return []byte(fmt.Sprintf((string)(c), args...))
 	}
 	return []byte(c)
 }
