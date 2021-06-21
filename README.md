@@ -1,6 +1,6 @@
 # Green Mountain Grill
 
-### Observe and Control your grill from Go
+### Observe and Control your grill with Go
 
 The `grillclient` package can be used as a universal client for 
 interacting with your Green Mountain Grill. 
