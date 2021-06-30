@@ -90,9 +90,10 @@ func withLogging(h fasthttp.RequestHandler, logger *logrus.Logger) fasthttp.Requ
 		logger.Info(b.String())
 		b.Reset()
 
-		// handle and start timer
+		// start timer and handle
 		t := time.Now()
 		h(ctx)
+		duration := time.Since(t).String()
 
 		// log response
 		b.WriteString("[RESPONSE ")
@@ -103,7 +104,7 @@ func withLogging(h fasthttp.RequestHandler, logger *logrus.Logger) fasthttp.Requ
 			b.WriteString(")")
 		}
 		b.WriteString(" ")
-		b.WriteString(time.Since(t).String())
+		b.WriteString(duration)
 		b.WriteString("]")
 		logger.Info(b.String())
 	}
