@@ -21,11 +21,11 @@ coverage: test
 
 .PHONY: run
 run: build
-	@./${BINARY_NAME}
+	@ENVIRONMENT=production ./${BINARY_NAME}
 
 .PHONY: run-dev
 run-dev: build
-	@ENVIRONMENT=development ./${BINARY_NAME}
+	@./${BINARY_NAME}
 
 .PHONY: generate
 generate: .gen .tidy

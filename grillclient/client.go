@@ -1,6 +1,7 @@
 package grillclient
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"time"
@@ -14,6 +15,8 @@ const (
 	_connWriteDeadline = 2 * time.Second
 	_maxConnAttempts   = 5
 )
+
+var GrillUnreachableError = errors.New("grill is unreachable")
 
 // Client -
 type Client interface {
@@ -125,6 +128,8 @@ func (g *grillClient) sendCommand(command Command, args ...interface{}) ([]byte,
 	// open a new udp connection
 	conn, err := g.openConnectionWithRetries()
 	if err != nil {
+		g.logger.WithError(err).Error("grill is unreachable")
+		err = GrillUnreachableError
 		return nil, err
 	}
 	defer g.safeCloseConn(conn)

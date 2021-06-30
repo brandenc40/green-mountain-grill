@@ -3,3 +3,4 @@ gmg
 .idea
 *.DS_Store
 *.out
+*.db
