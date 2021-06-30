@@ -15,7 +15,7 @@ const (
 	_maxConnAttempts   = 5
 )
 
-// Client -
+// Client - Green Mountain Grill client interface definition
 type Client interface {
 	IsAvailable() bool
 	GetState() (*State, error)
@@ -29,17 +29,14 @@ type Client interface {
 	PowerOff() error
 }
 
-// Params -
+// Params - Parameters to build a new Client
 type Params struct {
-	GrillIP   net.IP
-	GrillPort int
-	Logger    *logrus.Logger
-	// default 2 seconds
-	ReadTimeout time.Duration
-	// default 1 second
-	WriteTimeout time.Duration
-	// default 5
-	MaxConnAttempts int
+	GrillIP         net.IP
+	GrillPort       int
+	Logger          *logrus.Logger
+	ReadTimeout     time.Duration // default 2 seconds
+	WriteTimeout    time.Duration // default 1 second
+	MaxConnAttempts int           // default 5
 }
 
 // New -
