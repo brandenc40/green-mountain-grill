@@ -1,4 +1,4 @@
-module github.com/brandenc40/gmg
+module github.com/brandenc40/green-mountain-grill
 
 go 1.16
 
