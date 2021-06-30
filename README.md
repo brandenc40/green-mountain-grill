@@ -5,6 +5,32 @@
 The `grillclient` package can be used as a universal client for 
 interacting with your Green Mountain Grill. 
 
+```go
+// Client - Green Mountain Grill client interface definition
+type Client interface {
+	IsAvailable() bool
+	GetState() (*State, error)
+	GetID() ([]byte, error)
+	GetFirmware() ([]byte, error)
+	SetGrillTemp(temp int) error
+	SetProbe1Target(temp int) error
+	SetProbe2Target(temp int) error
+	PowerOn() error
+	PowerOnColdSmoke() error
+	PowerOff() error
+}
+
+// Params - Parameters to build a new Client
+type Params struct {
+	GrillIP         net.IP
+	GrillPort       int
+	Logger          *logrus.Logger
+	ReadTimeout     time.Duration // default 2 seconds
+	WriteTimeout    time.Duration // default 1 second
+	MaxConnAttempts int           // default 5
+}
+```
+
 Planned features to add:
 - track temp over time
 - alerts for when temps are reached
