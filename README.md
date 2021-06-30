@@ -2,6 +2,17 @@
 
 ### Observe and Control your grill with Go
 
+Planned features to add:
+- track temp over time
+- alerts for when temps are reached
+
+__Note: this was tested on my grill which is a Daniel Boone Prime purchased 
+in 2021. I'm  not sure if this will work properly on other models.__
+
+### Still a work in progress so feel free to assist with building this codebase, any help would be appreciated
+
+## Grill Client
+
 The `grillclient` package can be used as a universal client for 
 interacting with your Green Mountain Grill. 
 
@@ -42,14 +53,9 @@ params := grillclient.Params{
 client := grillclient.New(params)
 ```
 
-Planned features to add:
-- track temp over time
-- alerts for when temps are reached
+## Web Server
 
-__Note: this was tested on my grill which is a Daniel Boone Prime purchased 
-in 2021. I'm  not sure if this will work properly on other models.__
-
-### Still a work in progress so feel free to assist with building this codebase, any help would be appreciated
+TODO
 
 ## Grill State Data Parse
 
