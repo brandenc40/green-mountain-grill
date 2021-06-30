@@ -31,6 +31,17 @@ type Params struct {
 }
 ```
 
+Building a new client
+```go
+import "github.com/brandenc40/gmg/grillclient"
+
+params := grillclient.Params{
+	GrillIP:   "192.168.1.2", // example, this will change
+	GrillPort: "8080", // this should be the same for all grills... I think...
+}
+client := grillclient.New(params)
+```
+
 Planned features to add:
 - track temp over time
 - alerts for when temps are reached
