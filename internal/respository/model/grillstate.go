@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"github.com/brandenc40/gmg/grillclient"
+	"github.com/brandenc40/green-mountain-grill/grillclient"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )

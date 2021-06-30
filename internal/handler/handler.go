@@ -6,9 +6,9 @@ import (
 	"net"
 	"time"
 
-	"github.com/brandenc40/gmg/grillclient"
-	repo "github.com/brandenc40/gmg/internal/respository"
-	"github.com/brandenc40/gmg/internal/respository/mapper"
+	"github.com/brandenc40/green-mountain-grill/grillclient"
+	repo "github.com/brandenc40/green-mountain-grill/internal/respository"
+	"github.com/brandenc40/green-mountain-grill/internal/respository/mapper"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"

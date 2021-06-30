@@ -3,7 +3,7 @@ package repository
 import (
 	"errors"
 
-	"github.com/brandenc40/gmg/internal/respository/model"
+	"github.com/brandenc40/green-mountain-grill/internal/respository/model"
 	"github.com/google/uuid"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

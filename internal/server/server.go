@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/brandenc40/gmg/internal/handler"
-	repo "github.com/brandenc40/gmg/internal/respository"
+	"github.com/brandenc40/green-mountain-grill/internal/handler"
+	repo "github.com/brandenc40/green-mountain-grill/internal/respository"
 	"github.com/fasthttp/router"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"

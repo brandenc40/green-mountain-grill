@@ -1,8 +1,8 @@
 package mapper
 
 import (
-	"github.com/brandenc40/gmg/grillclient"
-	"github.com/brandenc40/gmg/internal/respository/model"
+	"github.com/brandenc40/green-mountain-grill/grillclient"
+	"github.com/brandenc40/green-mountain-grill/internal/respository/model"
 	"github.com/google/uuid"
 )
 
