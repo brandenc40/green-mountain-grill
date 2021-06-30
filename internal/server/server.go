@@ -17,8 +17,9 @@ import (
 )
 
 type config struct {
-	GrillIP   string `yaml:"grill_ip"`
-	GrillPort int    `yaml:"grill_port"`
+	GrillIP    string `yaml:"grill_ip"`
+	GrillPort  int    `yaml:"grill_port"`
+	ServerPort string `yaml:"server_port"`
 }
 
 func Run() {
@@ -39,8 +40,8 @@ func Run() {
 	r.GET("/api/session", withLogging(h.GetSessionData, logger))
 	r.POST("/api/session/new", withLogging(h.NewSession, logger))
 
-	logger.Info("Running on port :8080")
-	logger.Fatal(fasthttp.ListenAndServe(":8080", r.Handler))
+	logger.Info("Running on port " + cfg.ServerPort)
+	logger.Fatal(fasthttp.ListenAndServe(cfg.ServerPort, r.Handler))
 }
 
 func readConfig() *config {
@@ -82,30 +83,34 @@ func withLogging(h fasthttp.RequestHandler, logger *logrus.Logger) fasthttp.Requ
 	return func(ctx *fasthttp.RequestCtx) {
 		var b bytes.Buffer
 		// log request
-		b.WriteString("[REQUEST ")
-		b.Write(ctx.Method())
-		b.WriteString(" ")
-		b.Write(ctx.Path())
-		b.WriteString("]")
-		logger.Info(b.String())
-		b.Reset()
+		if logger.Level == logrus.DebugLevel {
+			b.WriteString("[REQUEST ")
+			b.Write(ctx.Method())
+			b.WriteString(" ")
+			b.Write(ctx.Path())
+			b.WriteString("]")
+			logger.Debug(b.String())
+			b.Reset()
+		}
 
 		// start timer and handle
-		t := time.Now()
+		start := time.Now()
 		h(ctx)
-		duration := time.Since(t).String()
+		dur := time.Since(start).String()
 
 		// log response
-		b.WriteString("[RESPONSE ")
-		b.WriteString(strconv.Itoa(ctx.Response.StatusCode()))
-		if ctx.Response.StatusCode() != 200 {
-			b.WriteString(" (")
-			b.Write(ctx.Response.Body())
-			b.WriteString(")")
+		if logger.Level == logrus.DebugLevel {
+			b.WriteString("[RESPONSE ")
+			b.WriteString(strconv.Itoa(ctx.Response.StatusCode()))
+			if ctx.Response.StatusCode() != fasthttp.StatusOK {
+				b.WriteString(" (")
+				b.Write(ctx.Response.Body())
+				b.WriteString(")")
+			}
+			b.WriteString(" ")
+			b.WriteString(dur)
+			b.WriteString("]")
+			logger.Debug(b.String())
 		}
-		b.WriteString(" ")
-		b.WriteString(duration)
-		b.WriteString("]")
-		logger.Info(b.String())
 	}
 }

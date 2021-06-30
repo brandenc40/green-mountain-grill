@@ -56,7 +56,7 @@ func New(p Params) *Handler {
 func (c *Handler) GetGrillState(ctx *fasthttp.RequestCtx) {
 	state, err := c.grill.GetState()
 	if err != nil {
-		if err == grillclient.GrillUnreachableError {
+		if _, ok := err.(grillclient.GrillUnreachableErr); ok {
 			ctx.Error(err.Error(), fasthttp.StatusServiceUnavailable)
 			return
 		}
@@ -97,7 +97,7 @@ func (c *Handler) GetGrillFirmware(ctx *fasthttp.RequestCtx) {
 
 // NewSession -
 func (c *Handler) NewSession(ctx *fasthttp.RequestCtx) {
-	if !c.grillIsAvailable() {
+	if !c.grill.IsAvailable() {
 		ctx.Error("grill is not available", fasthttp.StatusServiceUnavailable)
 		return
 	}
@@ -161,11 +161,4 @@ func (c *Handler) storeGrillState() (*grillclient.State, error) {
 		return nil, err
 	}
 	return state, nil
-}
-
-func (c *Handler) grillIsAvailable() bool {
-	if _, err := c.grill.GetState(); err != nil {
-		return false
-	}
-	return true
 }

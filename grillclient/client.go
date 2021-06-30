@@ -1,7 +1,6 @@
 package grillclient
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"time"
@@ -10,16 +9,15 @@ import (
 )
 
 const (
-	// UDP connection constants
-	_connReadDeadline  = 3 * time.Second
-	_connWriteDeadline = 2 * time.Second
+	// default UDP connection constants
+	_connReadDeadline  = 2 * time.Second
+	_connWriteDeadline = time.Second
 	_maxConnAttempts   = 5
 )
 
-var GrillUnreachableError = errors.New("grill is unreachable")
-
 // Client -
 type Client interface {
+	IsAvailable() bool
 	GetState() (*State, error)
 	GetID() ([]byte, error)
 	GetFirmware() ([]byte, error)
@@ -36,26 +34,50 @@ type Params struct {
 	GrillIP   net.IP
 	GrillPort int
 	Logger    *logrus.Logger
+	// default 2 seconds
+	ReadTimeout time.Duration
+	// default 1 second
+	WriteTimeout time.Duration
+	// default 5
+	MaxConnAttempts int
 }
 
 // New -
-func New(c Params) Client {
+func New(p Params) Client {
 	client := &grillClient{
-		grillAddr: &net.UDPAddr{
-			IP:   c.GrillIP,
-			Port: c.GrillPort,
-		},
-		logger: c.Logger,
+		grillAddr:       &net.UDPAddr{IP: p.GrillIP, Port: p.GrillPort},
+		logger:          p.Logger,
+		readTimeout:     p.ReadTimeout,
+		writeTimeout:    p.WriteTimeout,
+		maxConnAttempts: p.MaxConnAttempts,
 	}
-	if c.Logger == nil {
+	if client.logger == nil {
 		client.logger = logrus.New()
+	}
+	if client.readTimeout == 0 {
+		client.readTimeout = _connReadDeadline
+	}
+	if client.writeTimeout == 0 {
+		client.writeTimeout = _connWriteDeadline
+	}
+	if client.maxConnAttempts == 0 {
+		client.maxConnAttempts = _maxConnAttempts
 	}
 	return client
 }
 
 type grillClient struct {
-	grillAddr *net.UDPAddr
-	logger    *logrus.Logger
+	grillAddr       *net.UDPAddr
+	logger          *logrus.Logger
+	readTimeout     time.Duration
+	writeTimeout    time.Duration
+	maxConnAttempts int
+}
+
+// IsAvailable -
+func (g *grillClient) IsAvailable() bool {
+	_, err := g.GetState()
+	return err == nil
 }
 
 // GetState -
@@ -129,8 +151,7 @@ func (g *grillClient) sendCommand(command Command, args ...interface{}) ([]byte,
 	conn, err := g.openConnectionWithRetries()
 	if err != nil {
 		g.logger.WithError(err).Error("grill is unreachable")
-		err = GrillUnreachableError
-		return nil, err
+		return nil, GrillUnreachableErr{err: err}
 	}
 	defer g.safeCloseConn(conn)
 
@@ -138,15 +159,17 @@ func (g *grillClient) sendCommand(command Command, args ...interface{}) ([]byte,
 	cmd := command.Build(args...)
 	n, err := conn.Write(cmd) // note: udp writes without confirmation of data transfer so this is non blocking
 	if err != nil {
-		return nil, err
+		g.logger.WithError(err).Error("unable to write to udp conn")
+		return nil, GrillUnreachableErr{err: err}
 	}
 	g.logger.Debugf("%d bytes written: %v %#v %s", n, cmd, cmd, cmd)
 
 	// read the response from the udp connection
-	outBuf := make([]byte, 256)
+	outBuf := make([]byte, 64)
 	n, err = conn.Read(outBuf) // note: conn.Read() is blocking and will timeout after the _connReadDeadline duration
 	if err != nil {
-		return nil, err
+		g.logger.WithError(err).Error("unable to read from udp conn")
+		return nil, GrillUnreachableErr{err: err}
 	}
 	outBuf = outBuf[:n] // trim the unused bytes
 	g.logger.Debugf("%d bytes read: %v %#v", n, outBuf, outBuf)
