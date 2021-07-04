@@ -5,9 +5,10 @@ import (
 	"errors"
 	"time"
 
+	gmg "github.com/brandenc40/green-mountain-grill"
+
 	"go.uber.org/fx"
 
-	"github.com/brandenc40/green-mountain-grill/client"
 	repo "github.com/brandenc40/green-mountain-grill/internal/respository"
 	"github.com/brandenc40/green-mountain-grill/internal/respository/mapper"
 	"github.com/google/uuid"
@@ -23,7 +24,7 @@ const (
 
 // Handler -
 type Handler struct {
-	grill              client.Client
+	grill              gmg.Client
 	logger             *logrus.Logger
 	repo               repo.Repository
 	currentSessionUUID uuid.UUID
@@ -34,7 +35,7 @@ type Params struct {
 	fx.In
 
 	Logger      *logrus.Logger
-	GrillClient client.Client
+	GrillClient gmg.Client
 	Repository  repo.Repository
 }
 
@@ -53,7 +54,7 @@ func New(p Params) *Handler {
 func (c *Handler) GetGrillState(ctx *fasthttp.RequestCtx) {
 	state, err := c.grill.GetState()
 	if err != nil {
-		if _, ok := err.(client.GrillUnreachableErr); ok {
+		if _, ok := err.(gmg.GrillUnreachableErr); ok {
 			ctx.Error(err.Error(), fasthttp.StatusServiceUnavailable)
 			return
 		}
@@ -145,7 +146,7 @@ func (c *Handler) monitorGrill() error {
 }
 
 // storeGrillState - get current state and store to db
-func (c *Handler) storeGrillState() (*client.State, error) {
+func (c *Handler) storeGrillState() (*gmg.State, error) {
 	if c.currentSessionUUID == uuid.Nil {
 		return nil, errors.New("no grill session UUID has been set")
 	}

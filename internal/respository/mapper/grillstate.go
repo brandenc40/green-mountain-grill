@@ -1,13 +1,13 @@
 package mapper
 
 import (
-	"github.com/brandenc40/green-mountain-grill/client"
+	gmg "github.com/brandenc40/green-mountain-grill"
 	"github.com/brandenc40/green-mountain-grill/internal/respository/model"
 	"github.com/google/uuid"
 )
 
 // GrillStateEntityToModel -
-func GrillStateEntityToModel(gs *client.State, sessionUUID uuid.UUID) *model.GrillState {
+func GrillStateEntityToModel(gs *gmg.State, sessionUUID uuid.UUID) *model.GrillState {
 	return &model.GrillState{
 		SessionUUID:             sessionUUID,
 		CurrentTemperature:      gs.CurrentTemperature,

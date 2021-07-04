@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"github.com/brandenc40/green-mountain-grill/client"
+	gmg "github.com/brandenc40/green-mountain-grill"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -21,7 +21,7 @@ type GrillState struct {
 	Probe1TargetTemperature int
 	Probe2Temperature       int
 	Probe2TargetTemperature int
-	WarnCode                client.WarnCode
-	PowerState              client.PowerState
-	FireState               client.FireState
+	WarnCode                gmg.WarnCode
+	PowerState              gmg.PowerState
+	FireState               gmg.FireState
 }

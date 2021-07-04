@@ -1,15 +1,15 @@
-BINARY_NAME=gmg
+BINARY_NAME=gmg-server
 
 .PHONY: default
-default: clean generate build
+default: generate build
 
 .PHONY: build
 build:
-	@go build -o ${BINARY_NAME} main.go
+	@go build -o bin/${BINARY_NAME} cmd/server/main.go
 
 .PHONY: clean
 clean:
-	@rm ${BINARY_NAME}
+	@rm bin/${BINARY_NAME}
 
 .PHONY: test
 test:
@@ -22,11 +22,11 @@ coverage: test
 .PHONY: run-prod
 run-prod: build
 	@echo "Running in Production mode"
-	@ENVIRONMENT=production ./${BINARY_NAME}
+	@ENVIRONMENT=production bin/${BINARY_NAME}
 
 .PHONY: run
 run: build
-	@./${BINARY_NAME}
+	@bin/${BINARY_NAME}
 
 .PHONY: generate
 generate: .gen .tidy

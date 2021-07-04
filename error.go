@@ -1,4 +1,4 @@
-package client
+package gmg
 
 const _unreachableErr = "grill is unreachable: "
 

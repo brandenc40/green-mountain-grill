@@ -1,4 +1,4 @@
-package client
+package gmg
 
 import (
 	"reflect"

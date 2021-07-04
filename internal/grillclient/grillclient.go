@@ -3,7 +3,7 @@ package grillclient
 import (
 	"net"
 
-	"github.com/brandenc40/green-mountain-grill/client"
+	gmg "github.com/brandenc40/green-mountain-grill"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/fx"
 )
@@ -17,11 +17,11 @@ type Params struct {
 	Logger *logrus.Logger
 }
 
-func New(p Params) client.Client {
-	params := client.Params{
+func New(p Params) gmg.Client {
+	params := gmg.Params{
 		GrillIP:   net.ParseIP(p.Config.GrillIP),
 		GrillPort: p.Config.GrillPort,
 		Logger:    p.Logger,
 	}
-	return client.New(params)
+	return gmg.New(params)
 }
