@@ -1,7 +1,5 @@
 # Green Mountain Grill
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/brandenc40/green-mountain-grill.svg)](https://pkg.go.dev/github.com/brandenc40/green-mountain-grill)
-
 ### Observe and Control your grill with Go
 
 __Note: this was tested on my grill which is a Daniel Boone Prime purchased 
