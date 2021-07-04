@@ -8,7 +8,7 @@ require (
 	github.com/google/uuid v1.2.0
 	github.com/klauspost/compress v1.13.1 // indirect
 	github.com/sirupsen/logrus v1.8.1
-	github.com/valyala/fasthttp v1.27.0
+	github.com/valyala/fasthttp v1.28.0
 	go.uber.org/config v1.4.0
 	go.uber.org/fx v1.13.1
 	gorm.io/driver/sqlite v1.1.4
