@@ -1,4 +1,4 @@
-package grillclient
+package client
 
 import (
 	"fmt"

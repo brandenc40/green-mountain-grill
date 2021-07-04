@@ -1,4 +1,4 @@
-package grillclient
+package client
 
 // State Bytes Locations
 // UR[2 Byte Grill Temp][2 Byte food probe Temp][2 Byte Target Temp][skip 22 bytes][2 Byte target food probe][1byte on/off/fan][5 byte tail]

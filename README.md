@@ -13,7 +13,7 @@ in 2021. I'm  not sure if this will work properly on other models.__
 
 ## Grill Client
 
-The `grillclient` package can be used as a universal client for 
+The `client` package can be used as a universal client for 
 interacting with your Green Mountain Grill. 
 
 ```go
@@ -44,13 +44,13 @@ type Params struct {
 
 Building a new client
 ```go
-import "github.com/brandenc40/gmg/grillclient"
+import gmg "github.com/brandenc40/green-mountain-grill/client"
 
-params := grillclient.Params{
+params := gmg.Params{
 	GrillIP:   "192.168.1.2", // example, this will change
 	GrillPort: "8080", // this should be the same for all grills... I think...
 }
-client := grillclient.New(params)
+client := gmg.New(params)
 ```
 
 ## Web Server

@@ -1,4 +1,4 @@
-package grillclient
+package client
 
 // State - The current state of the grill
 type State struct {

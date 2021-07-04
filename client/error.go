@@ -1,4 +1,4 @@
-package grillclient
+package client
 
 const _unreachableErr = "grill is unreachable: "
 
