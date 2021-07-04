@@ -1,9 +1,7 @@
 package main
 
-import (
-	"github.com/brandenc40/green-mountain-grill/internal/server"
-)
+import "github.com/brandenc40/green-mountain-grill/internal/app"
 
 func main() {
-	server.Run()
+	app.App().Run()
 }

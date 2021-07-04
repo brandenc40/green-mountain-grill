@@ -10,7 +10,9 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.4.0 // indirect
 	github.com/valyala/fasthttp v1.26.0
-	gopkg.in/yaml.v2 v2.2.5
+	go.uber.org/config v1.4.0
+	go.uber.org/fx v1.13.1
+	gopkg.in/yaml.v2 v2.2.5 // indirect
 	gorm.io/driver/sqlite v1.1.4
 	gorm.io/gorm v1.21.11
 )

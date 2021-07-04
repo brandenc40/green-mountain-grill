@@ -2,94 +2,85 @@ package server
 
 import (
 	"bytes"
-	"log"
-	"net"
-	"os"
+	"context"
 	"strconv"
 	"time"
 
-	"github.com/brandenc40/green-mountain-grill/internal/handler"
-	repo "github.com/brandenc40/green-mountain-grill/internal/respository"
+	"go.uber.org/fx"
+
 	"github.com/fasthttp/router"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
-	"gopkg.in/yaml.v2"
 )
 
-type config struct {
-	GrillIP    string `yaml:"grill_ip"`
-	GrillPort  int    `yaml:"grill_port"`
-	ServerPort string `yaml:"server_port"`
+var Module = fx.Provide(New, NewConfig)
+
+type Params struct {
+	fx.In
+
+	Config    *Config
+	Logger    *logrus.Logger
+	Lifecycle fx.Lifecycle
 }
 
-func Run() {
-	cfg := readConfig()
-	logger := newLogger()
-
-	h := handler.New(handler.Params{
-		GrillIP:    net.ParseIP(cfg.GrillIP),
-		GrillPort:  cfg.GrillPort,
-		Logger:     logger,
-		Repository: newRepo(),
-	})
-
+func New(p Params) *Server {
 	r := router.New()
-	r.GET("/api/state", withLogging(h.GetGrillState, logger))
-	r.GET("/api/id", withLogging(h.GetGrillID, logger))
-	r.GET("/api/firmware", withLogging(h.GetGrillFirmware, logger))
-	r.GET("/api/session", withLogging(h.GetSessionData, logger))
-	r.POST("/api/session/new", withLogging(h.NewSession, logger))
-
-	logger.Info("Running on port " + cfg.ServerPort)
-	logger.Fatal(fasthttp.ListenAndServe(cfg.ServerPort, r.Handler))
+	s := &Server{
+		config: p.Config,
+		logger: p.Logger,
+		router: r,
+		httpServer: &fasthttp.Server{
+			Handler:     r.Handler,
+			ReadTimeout: 3 * time.Second,
+		},
+	}
+	p.Lifecycle.Append(
+		fx.Hook{
+			OnStart: func(context.Context) error {
+				go func() {
+					err := s.Run()
+					if err != nil {
+						p.Logger.WithError(err).Error("unable to start server")
+					}
+				}()
+				return nil
+			},
+			OnStop: func(ctx context.Context) error {
+				return s.Shutdown()
+			},
+		},
+	)
+	return s
 }
 
-func readConfig() *config {
-	file, err := os.ReadFile("config.yaml")
-	if err != nil {
-		log.Printf("yamlFile.Get err #%v ", err)
-	}
-	var c config
-	if err = yaml.Unmarshal(file, &c); err != nil {
-		log.Fatalf("Unmarshal: %v", err)
-	}
-	return &c
+type Server struct {
+	config     *Config
+	logger     *logrus.Logger
+	httpServer *fasthttp.Server
+	router     *router.Router
 }
 
-func newLogger() *logrus.Logger {
-	level := logrus.DebugLevel
-	if os.Getenv("ENVIRONMENT") == "production" {
-		level = logrus.InfoLevel
-	}
-	logger := &logrus.Logger{
-		Out:       os.Stderr,
-		Formatter: new(logrus.TextFormatter),
-		Hooks:     make(logrus.LevelHooks),
-		Level:     level,
-	}
-	logger.Debug("logging at DEBUG level")
-	return logger
+func (s *Server) Run() error {
+	s.logger.Info("Running on port " + s.config.ServerPort)
+	return s.httpServer.ListenAndServe(s.config.ServerPort)
 }
 
-func newRepo() repo.Repository {
-	r, err := repo.New()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return r
+func (s *Server) Shutdown() error {
+	s.logger.Info("shutting down server")
+	return s.httpServer.Shutdown()
 }
 
-func withLogging(h fasthttp.RequestHandler, logger *logrus.Logger) fasthttp.RequestHandler {
+func (s *Server) WithLogging(h fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
 		var b bytes.Buffer
 		// log request
-		if logger.Level == logrus.DebugLevel {
+		if s.logger.Level == logrus.DebugLevel {
 			b.WriteString("[REQUEST ")
 			b.Write(ctx.Method())
 			b.WriteString(" ")
 			b.Write(ctx.Path())
 			b.WriteString("]")
-			logger.Debug(b.String())
+			s.logger.Debug(b.String())
 			b.Reset()
 		}
 
@@ -99,7 +90,7 @@ func withLogging(h fasthttp.RequestHandler, logger *logrus.Logger) fasthttp.Requ
 		dur := time.Since(start).String()
 
 		// log response
-		if logger.Level == logrus.DebugLevel {
+		if s.logger.Level == logrus.DebugLevel {
 			b.WriteString("[RESPONSE ")
 			b.WriteString(strconv.Itoa(ctx.Response.StatusCode()))
 			if ctx.Response.StatusCode() != fasthttp.StatusOK {
@@ -110,7 +101,7 @@ func withLogging(h fasthttp.RequestHandler, logger *logrus.Logger) fasthttp.Requ
 			b.WriteString(" ")
 			b.WriteString(dur)
 			b.WriteString("]")
-			logger.Debug(b.String())
+			s.logger.Debug(b.String())
 		}
 	}
 }

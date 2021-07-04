@@ -3,8 +3,9 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"net"
 	"time"
+
+	"go.uber.org/fx"
 
 	"github.com/brandenc40/green-mountain-grill/grillclient"
 	repo "github.com/brandenc40/green-mountain-grill/internal/respository"
@@ -13,6 +14,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 )
+
+var Module = fx.Provide(New)
 
 const (
 	contentTypeJSON = "application/json"
@@ -28,26 +31,20 @@ type Handler struct {
 
 // Params -
 type Params struct {
-	GrillIP    net.IP
-	GrillPort  int
-	Logger     *logrus.Logger
-	Repository repo.Repository
+	fx.In
+
+	Logger      *logrus.Logger
+	GrillClient grillclient.Client
+	Repository  repo.Repository
 }
 
 // New -
 func New(p Params) *Handler {
 	h := &Handler{
-		grill: grillclient.New(grillclient.Params{
-			GrillIP:   p.GrillIP,
-			GrillPort: p.GrillPort,
-			Logger:    p.Logger,
-		}),
+		grill:              p.GrillClient,
 		logger:             p.Logger,
 		repo:               p.Repository,
 		currentSessionUUID: uuid.Nil,
-	}
-	if h.logger == nil {
-		h.logger = logrus.New()
 	}
 	return h
 }

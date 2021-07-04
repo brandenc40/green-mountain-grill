@@ -19,12 +19,13 @@ test:
 coverage: test
 	@go tool cover -html=cp.out
 
-.PHONY: run
-run: build
+.PHONY: run-prod
+run-prod: build
+	@echo "Running in Production mode"
 	@ENVIRONMENT=production ./${BINARY_NAME}
 
-.PHONY: run-dev
-run-dev: build
+.PHONY: run
+run: build
 	@./${BINARY_NAME}
 
 .PHONY: generate

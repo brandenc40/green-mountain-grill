@@ -1,13 +1,17 @@
-package repository
+package respository
 
 import (
 	"errors"
+
+	"go.uber.org/fx"
 
 	"github.com/brandenc40/green-mountain-grill/internal/respository/model"
 	"github.com/google/uuid"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
+
+var Module = fx.Provide(New)
 
 var models = []interface{}{
 	&model.GrillState{},
