@@ -9,8 +9,8 @@ import (
 
 	"go.uber.org/fx"
 
-	repo "github.com/brandenc40/green-mountain-grill/internal/respository"
-	"github.com/brandenc40/green-mountain-grill/internal/respository/mapper"
+	repo "github.com/brandenc40/green-mountain-grill/server/respository"
+	"github.com/brandenc40/green-mountain-grill/server/respository/mapper"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"

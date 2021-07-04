@@ -9,5 +9,5 @@ import (
 var Module = fx.Provide(NewProvider)
 
 func NewProvider() (config.Provider, error) {
-	return config.NewYAML(config.File("internal/config/config.yaml"))
+	return config.NewYAML(config.File("server/config/config.yaml"))
 }

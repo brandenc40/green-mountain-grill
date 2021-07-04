@@ -1,6 +1,6 @@
 package server
 
-import "github.com/brandenc40/green-mountain-grill/internal/handler"
+import "github.com/brandenc40/green-mountain-grill/server/handler"
 
 func RegisterRoutes(server *Server, handler *handler.Handler) {
 	server.router.GET("/api/state", server.WithLogging(handler.GetGrillState))

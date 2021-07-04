@@ -2,7 +2,7 @@ package mapper
 
 import (
 	gmg "github.com/brandenc40/green-mountain-grill"
-	"github.com/brandenc40/green-mountain-grill/internal/respository/model"
+	"github.com/brandenc40/green-mountain-grill/server/respository/model"
 	"github.com/google/uuid"
 )
 

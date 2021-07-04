@@ -5,7 +5,7 @@ import (
 
 	"go.uber.org/fx"
 
-	"github.com/brandenc40/green-mountain-grill/internal/respository/model"
+	"github.com/brandenc40/green-mountain-grill/server/respository/model"
 	"github.com/google/uuid"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
