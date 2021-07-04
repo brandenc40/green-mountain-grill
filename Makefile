@@ -1,15 +1,15 @@
-BINARY_NAME=gmg-server
+SERVER_BINARY_NAME=server
 
 .PHONY: default
 default: generate build
 
 .PHONY: build
 build:
-	@go build -o bin/${BINARY_NAME} cmd/server/main.go
+	@go build -o bin/${SERVER_BINARY_NAME} cmd/server/main.go
 
 .PHONY: clean
 clean:
-	@rm bin/${BINARY_NAME}
+	@rm bin/${SERVER_BINARY_NAME}
 
 .PHONY: test
 test:
@@ -22,11 +22,11 @@ coverage: test
 .PHONY: run-prod
 run-prod: build
 	@echo "Running in Production mode"
-	@ENVIRONMENT=production bin/${BINARY_NAME}
+	@ENVIRONMENT=production bin/${SERVER_BINARY_NAME}
 
 .PHONY: run
 run: build
-	@bin/${BINARY_NAME}
+	@bin/${SERVER_BINARY_NAME}
 
 .PHONY: generate
 generate: .gen .tidy
@@ -34,6 +34,7 @@ generate: .gen .tidy
 .PHONY: .gen
 .gen:
 	@go get github.com/alvaroloes/enumer
+	@go mod vendor
 	@go generate -x ./...
 
 .PHONY: .tidy

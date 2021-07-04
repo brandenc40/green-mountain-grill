@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"context"
+	"os"
 	"strconv"
 	"time"
 
@@ -18,9 +19,10 @@ var Module = fx.Provide(New, NewConfig)
 type Params struct {
 	fx.In
 
-	Config    *Config
-	Logger    *logrus.Logger
-	Lifecycle fx.Lifecycle
+	Config     *Config
+	Logger     *logrus.Logger
+	Lifecycle  fx.Lifecycle
+	Shutdowner fx.Shutdowner
 }
 
 func New(p Params) *Server {
@@ -41,6 +43,10 @@ func New(p Params) *Server {
 					err := s.Run()
 					if err != nil {
 						p.Logger.WithError(err).Error("unable to start server")
+						if err := p.Shutdowner.Shutdown(); err != nil {
+							p.Logger.WithError(err).Error("could not shutdown, exiting with os.Exit(1)")
+							os.Exit(1)
+						}
 					}
 				}()
 				return nil
@@ -61,7 +67,7 @@ type Server struct {
 }
 
 func (s *Server) Run() error {
-	s.logger.Info("Running on port " + s.config.ServerPort)
+	s.logger.Info("server running on port " + s.config.ServerPort)
 	return s.httpServer.ListenAndServe(s.config.ServerPort)
 }
 
