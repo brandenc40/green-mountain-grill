@@ -1,10 +1,8 @@
 # Green Mountain Grill
 
-### Observe and Control your grill with Go
+[![Go Reference](https://pkg.go.dev/badge/github.com/brandenc40/green-mountain-grill.svg)](https://pkg.go.dev/github.com/brandenc40/green-mountain-grill)
 
-Planned features to add:
-- track temp over time
-- alerts for when temps are reached
+### Observe and Control your grill with Go
 
 __Note: this was tested on my grill which is a Daniel Boone Prime purchased 
 in 2021. I'm  not sure if this will work properly on other models.__
@@ -52,7 +50,11 @@ client := gmg.New(params)
 
 ## Web Server
 
-TODO
+WORK IN PROGRESS
+
+Planned features to add:
+- track temp over time
+- alerts for when temps are reached
 
 ## Grill State Data Parse
 
