@@ -6,17 +6,13 @@ import (
 	"time"
 
 	gmg "github.com/brandenc40/green-mountain-grill"
-
-	"go.uber.org/fx"
-
 	repo "github.com/brandenc40/green-mountain-grill/server/respository"
 	"github.com/brandenc40/green-mountain-grill/server/respository/mapper"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/fx"
 )
-
-var Module = fx.Provide(New)
 
 const (
 	contentTypeJSON = "application/json"

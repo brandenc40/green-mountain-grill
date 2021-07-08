@@ -11,15 +11,22 @@ import (
 	"go.uber.org/fx"
 )
 
+var FXModule = fx.Options(
+	// setup fx logger
+	fx.Logger(logrus.StandardLogger()),
+
+	// build dependencies
+	config.Module,
+	grillclient.Module,
+	handler.Module,
+	logger.Module,
+	respository.Module,
+	server.Module,
+
+	// invoke route registration for the server on startup
+	fx.Invoke(server.RegisterRoutes),
+)
+
 func App() *fx.App {
-	return fx.New(
-		config.Module,
-		grillclient.Module,
-		handler.Module,
-		logger.Module,
-		respository.Module,
-		server.Module,
-		fx.Logger(logrus.StandardLogger()),
-		fx.Invoke(server.RegisterRoutes),
-	)
+	return fx.New(FXModule)
 }

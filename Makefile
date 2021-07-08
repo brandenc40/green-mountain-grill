@@ -1,5 +1,7 @@
 SERVER_BINARY_NAME=server
 
+export APP_ROT = $(CURDIR)
+
 .PHONY: default
 default: generate build
 
@@ -26,6 +28,7 @@ run-prod: build
 
 .PHONY: run
 run: build
+	echo $(CURD_DIR)
 	@bin/${SERVER_BINARY_NAME}
 
 .PHONY: generate

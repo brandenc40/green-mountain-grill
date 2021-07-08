@@ -7,14 +7,11 @@ import (
 	"strconv"
 	"time"
 
-	"go.uber.org/fx"
-
 	"github.com/fasthttp/router"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/fx"
 )
-
-var Module = fx.Provide(New, NewConfig)
 
 type Params struct {
 	fx.In
