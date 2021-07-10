@@ -9,6 +9,11 @@ default: generate build
 build:
 	@go build -o bin/${SERVER_BINARY_NAME} cmd/server/main.go
 
+.PHONY: mocks
+mocks:
+	@mockery --keeptree --all --dir ./server
+	@mockery --keeptree --name=Client
+
 .PHONY: clean
 clean:
 	@rm bin/${SERVER_BINARY_NAME}

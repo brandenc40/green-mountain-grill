@@ -3,12 +3,12 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"time"
 
 	gmg "github.com/brandenc40/green-mountain-grill"
 	repo "github.com/brandenc40/green-mountain-grill/server/respository"
 	"github.com/brandenc40/green-mountain-grill/server/respository/mapper"
 	"github.com/google/uuid"
+	"github.com/jasonlvhit/gocron"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/fx"
@@ -18,14 +18,6 @@ const (
 	contentTypeJSON = "application/json"
 )
 
-// Handler -
-type Handler struct {
-	grill              gmg.Client
-	logger             *logrus.Logger
-	repo               repo.Repository
-	currentSessionUUID uuid.UUID
-}
-
 // Params -
 type Params struct {
 	fx.In
@@ -33,6 +25,7 @@ type Params struct {
 	Logger      *logrus.Logger
 	GrillClient gmg.Client
 	Repository  repo.Repository
+	Scheduler   *gocron.Scheduler
 }
 
 // New -
@@ -42,8 +35,20 @@ func New(p Params) *Handler {
 		logger:             p.Logger,
 		repo:               p.Repository,
 		currentSessionUUID: uuid.Nil,
+		scheduler:          p.Scheduler,
 	}
 	return h
+}
+
+// Handler -
+type Handler struct {
+	grill              gmg.Client
+	logger             *logrus.Logger
+	repo               repo.Repository
+	currentSessionUUID uuid.UUID
+	scheduler          *gocron.Scheduler
+	stopChannel        chan bool
+	isMonitoring       bool
 }
 
 // GetGrillState -
@@ -132,13 +137,23 @@ func (c *Handler) monitorGrillAsync() {
 
 // monitorGrill - check grill state and store to database once every minute
 func (c *Handler) monitorGrill() error {
-	for true {
-		if _, err := c.storeGrillState(); err != nil {
-			return err
-		}
-		time.Sleep(time.Minute)
+	if c.isMonitoring {
+		c.stopMonitoringGrill()
+		c.scheduler.Clear()
 	}
+	err := c.scheduler.Every(1).Minute().Do(c.storeGrillState)
+	if err != nil {
+		return err
+	}
+	c.stopChannel = c.scheduler.Start()
+	c.isMonitoring = true
 	return nil
+}
+
+func (c *Handler) stopMonitoringGrill() {
+	c.stopChannel <- true
+	c.isMonitoring = false
+	close(c.stopChannel)
 }
 
 // storeGrillState - get current state and store to db
