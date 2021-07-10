@@ -3,9 +3,12 @@ package gmg
 const _unreachableErr = "grill is unreachable: "
 
 type GrillUnreachableErr struct {
-	err error
+	Err error
 }
 
 func (g GrillUnreachableErr) Error() string {
-	return _unreachableErr + g.err.Error()
+	if g.Err == nil {
+		return _unreachableErr
+	}
+	return _unreachableErr + g.Err.Error()
 }

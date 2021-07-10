@@ -148,7 +148,7 @@ func (g *grillClient) sendCommand(command Command, args ...interface{}) ([]byte,
 	conn, err := g.openConnectionWithRetries()
 	if err != nil {
 		g.logger.WithError(err).Error("grill is unreachable")
-		return nil, GrillUnreachableErr{err: err}
+		return nil, GrillUnreachableErr{Err: err}
 	}
 	defer g.safeCloseConn(conn)
 
@@ -157,7 +157,7 @@ func (g *grillClient) sendCommand(command Command, args ...interface{}) ([]byte,
 	n, err := conn.Write(cmd) // note: udp writes without confirmation of data transfer so this is non blocking
 	if err != nil {
 		g.logger.WithError(err).Error("unable to write to udp conn")
-		return nil, GrillUnreachableErr{err: err}
+		return nil, GrillUnreachableErr{Err: err}
 	}
 	g.logger.Debugf("%d bytes written: %v %#v %s", n, cmd, cmd, cmd)
 
@@ -166,7 +166,7 @@ func (g *grillClient) sendCommand(command Command, args ...interface{}) ([]byte,
 	n, err = conn.Read(outBuf) // note: conn.Read() is blocking and will timeout after the _connReadDeadline duration
 	if err != nil {
 		g.logger.WithError(err).Error("unable to read from udp conn")
-		return nil, GrillUnreachableErr{err: err}
+		return nil, GrillUnreachableErr{Err: err}
 	}
 	outBuf = outBuf[:n] // trim the unused bytes
 	g.logger.Debugf("%d bytes read: %v %#v", n, outBuf, outBuf)

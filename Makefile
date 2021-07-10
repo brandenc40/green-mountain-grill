@@ -3,16 +3,18 @@ SERVER_BINARY_NAME=server
 export APP_ROT = $(CURDIR)
 
 .PHONY: default
-default: generate build
+default: generate build mocks
 
 .PHONY: build
 build:
+	@echo "Building Binary..."
 	@go build -o bin/${SERVER_BINARY_NAME} cmd/server/main.go
 
 .PHONY: mocks
 mocks:
-	@mockery --keeptree --all --dir ./server
-	@mockery --keeptree --name=Client
+	@echo "Building Mocks..."
+	@mockery --all --dir ./server
+	@mockery --name=Client
 
 .PHONY: clean
 clean:
@@ -41,6 +43,7 @@ generate: .gen .tidy
 
 .PHONY: .gen
 .gen:
+	@echo "Generating Code..."
 	@go get github.com/alvaroloes/enumer
 	@go mod vendor
 	@go generate -x ./...

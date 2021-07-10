@@ -154,6 +154,7 @@ func (c *Handler) stopMonitoringGrill() {
 	c.stopChannel <- true
 	c.isMonitoring = false
 	close(c.stopChannel)
+	c.stopChannel = nil
 }
 
 // storeGrillState - get current state and store to db
