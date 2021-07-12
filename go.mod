@@ -8,7 +8,6 @@ require (
 	github.com/google/uuid v1.2.0
 	github.com/jasonlvhit/gocron v0.0.1
 	github.com/klauspost/compress v1.13.1 // indirect
-	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
 	github.com/valyala/fasthttp v1.28.0
 	go.uber.org/atomic v1.8.0 // indirect
