@@ -3,16 +3,21 @@ package logger
 import (
 	"os"
 
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap/zapcore"
+
 	"go.uber.org/fx"
+	"go.uber.org/zap"
 )
 
 var Module = fx.Provide(New)
 
-func New() *logrus.Logger {
-	logger := logrus.StandardLogger()
-	if os.Getenv("ENVIRONMENT") != "production" {
-		logger.SetLevel(logrus.DebugLevel)
+func New() (*zap.Logger, error) {
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		return nil, err
 	}
-	return logger
+	if os.Getenv("ENVIRONMENT") == "production" {
+		logger = logger.WithOptions(zap.IncreaseLevel(zapcore.InfoLevel))
+	}
+	return logger, nil
 }

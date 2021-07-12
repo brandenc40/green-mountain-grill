@@ -7,8 +7,9 @@ import (
 	"strconv"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/fasthttp/router"
-	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/fx"
 )
@@ -17,7 +18,7 @@ type Params struct {
 	fx.In
 
 	Config     *Config
-	Logger     *logrus.Logger
+	Logger     *zap.Logger
 	Lifecycle  fx.Lifecycle
 	Shutdowner fx.Shutdowner
 }
@@ -39,9 +40,9 @@ func New(p Params) *Server {
 				go func() {
 					err := s.Run()
 					if err != nil {
-						p.Logger.WithError(err).Error("unable to start server")
+						p.Logger.Error("unable to start server", zap.Error(err))
 						if err := p.Shutdowner.Shutdown(); err != nil {
-							p.Logger.WithError(err).Error("could not shutdown, exiting with os.Exit(1)")
+							p.Logger.Error("could not shutdown, exiting with os.Exit(1)", zap.Error(err))
 							os.Exit(1)
 						}
 					}
@@ -58,7 +59,7 @@ func New(p Params) *Server {
 
 type Server struct {
 	config     *Config
-	logger     *logrus.Logger
+	logger     *zap.Logger
 	httpServer *fasthttp.Server
 	router     *router.Router
 }
@@ -77,7 +78,7 @@ func (s *Server) WithLogging(h fasthttp.RequestHandler) fasthttp.RequestHandler 
 	return func(ctx *fasthttp.RequestCtx) {
 		var b bytes.Buffer
 		// log request
-		if s.logger.Level == logrus.DebugLevel {
+		if s.logger.Core().Enabled(zap.DebugLevel) {
 			b.WriteString("[REQUEST ")
 			b.Write(ctx.Method())
 			b.WriteString(" ")
@@ -93,7 +94,7 @@ func (s *Server) WithLogging(h fasthttp.RequestHandler) fasthttp.RequestHandler 
 		dur := time.Since(start).String()
 
 		// log response
-		if s.logger.Level == logrus.DebugLevel {
+		if s.logger.Core().Enabled(zap.DebugLevel) {
 			b.WriteString("[RESPONSE ")
 			b.WriteString(strconv.Itoa(ctx.Response.StatusCode()))
 			if ctx.Response.StatusCode() != fasthttp.StatusOK {

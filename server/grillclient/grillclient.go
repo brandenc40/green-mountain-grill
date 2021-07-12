@@ -3,8 +3,9 @@ package grillclient
 import (
 	"net"
 
+	"go.uber.org/zap"
+
 	gmg "github.com/brandenc40/green-mountain-grill"
-	"github.com/sirupsen/logrus"
 	"go.uber.org/fx"
 )
 
@@ -12,10 +13,10 @@ type Params struct {
 	fx.In
 
 	Config *Config
-	Logger *logrus.Logger
+	Logger *zap.Logger
 }
 
-func New(p Params) gmg.Client {
+func New(p Params) (gmg.Client, error) {
 	params := gmg.Params{
 		GrillIP:   net.ParseIP(p.Config.GrillIP),
 		GrillPort: p.Config.GrillPort,

@@ -9,9 +9,9 @@ import (
 	"github.com/brandenc40/green-mountain-grill/server/respository/mapper"
 	"github.com/google/uuid"
 	"github.com/jasonlvhit/gocron"
-	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/fx"
+	"go.uber.org/zap"
 )
 
 const (
@@ -22,7 +22,7 @@ const (
 type Params struct {
 	fx.In
 
-	Logger      *logrus.Logger
+	Logger      *zap.Logger
 	GrillClient gmg.Client
 	Repository  repo.Repository
 	Scheduler   *gocron.Scheduler
@@ -43,7 +43,7 @@ func New(p Params) *Handler {
 // Handler -
 type Handler struct {
 	grill              gmg.Client
-	logger             *logrus.Logger
+	logger             *zap.Logger
 	repo               repo.Repository
 	currentSessionUUID uuid.UUID
 	scheduler          *gocron.Scheduler
@@ -130,7 +130,7 @@ func (c *Handler) GetSessionData(ctx *fasthttp.RequestCtx) {
 func (c *Handler) monitorGrillAsync() {
 	go func() {
 		if err := c.monitorGrill(); err != nil {
-			c.logger.WithError(err).Error("error monitoring grill")
+			c.logger.Error("error monitoring grill", zap.Error(err))
 		}
 	}()
 }

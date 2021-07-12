@@ -5,7 +5,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 )
 
 const (
@@ -33,14 +33,14 @@ type Client interface {
 type Params struct {
 	GrillIP         net.IP
 	GrillPort       int
-	Logger          *logrus.Logger
+	Logger          *zap.Logger
 	ReadTimeout     time.Duration // default 2 seconds
 	WriteTimeout    time.Duration // default 1 second
 	MaxConnAttempts int           // default 5
 }
 
 // New -
-func New(p Params) Client {
+func New(p Params) (Client, error) {
 	client := &grillClient{
 		grillAddr:       &net.UDPAddr{IP: p.GrillIP, Port: p.GrillPort},
 		logger:          p.Logger,
@@ -49,7 +49,11 @@ func New(p Params) Client {
 		maxConnAttempts: p.MaxConnAttempts,
 	}
 	if client.logger == nil {
-		client.logger = logrus.New()
+		log, err := zap.NewDevelopment()
+		if err != nil {
+			return nil, err
+		}
+		client.logger = log
 	}
 	if client.readTimeout == 0 {
 		client.readTimeout = _connReadDeadline
@@ -60,12 +64,12 @@ func New(p Params) Client {
 	if client.maxConnAttempts == 0 {
 		client.maxConnAttempts = _maxConnAttempts
 	}
-	return client
+	return client, nil
 }
 
 type grillClient struct {
 	grillAddr       *net.UDPAddr
-	logger          *logrus.Logger
+	logger          *zap.Logger
 	readTimeout     time.Duration
 	writeTimeout    time.Duration
 	maxConnAttempts int
@@ -147,7 +151,7 @@ func (g *grillClient) sendCommand(command Command, args ...interface{}) ([]byte,
 	// open a new udp connection
 	conn, err := g.openConnectionWithRetries()
 	if err != nil {
-		g.logger.WithError(err).Error("grill is unreachable")
+		g.logger.Error("grill is unreachable", zap.Error(err))
 		return nil, GrillUnreachableErr{Err: err}
 	}
 	defer g.safeCloseConn(conn)
@@ -156,26 +160,26 @@ func (g *grillClient) sendCommand(command Command, args ...interface{}) ([]byte,
 	cmd := command.Build(args...)
 	n, err := conn.Write(cmd) // note: udp writes without confirmation of data transfer so this is non blocking
 	if err != nil {
-		g.logger.WithError(err).Error("unable to write to udp conn")
+		g.logger.Error("unable to write to udp conn", zap.Error(err))
 		return nil, GrillUnreachableErr{Err: err}
 	}
-	g.logger.Debugf("%d bytes written: %v %#v %s", n, cmd, cmd, cmd)
+	g.logger.Debug(fmt.Sprintf("%d bytes written: %v %#v %s", n, cmd, cmd, cmd))
 
 	// read the response from the udp connection
 	outBuf := make([]byte, 64)
 	n, err = conn.Read(outBuf) // note: conn.Read() is blocking and will timeout after the _connReadDeadline duration
 	if err != nil {
-		g.logger.WithError(err).Error("unable to read from udp conn")
+		g.logger.Error("unable to read from udp conn", zap.Error(err))
 		return nil, GrillUnreachableErr{Err: err}
 	}
 	outBuf = outBuf[:n] // trim the unused bytes
-	g.logger.Debugf("%d bytes read: %v %#v", n, outBuf, outBuf)
+	g.logger.Debug(fmt.Sprintf("%d bytes read: %v %#v", n, outBuf, outBuf))
 	return outBuf, nil
 }
 
 func (g *grillClient) openConnectionWithRetries() (conn net.Conn, err error) {
 	for i := 1; i <= _maxConnAttempts; i++ {
-		g.logger.Debugf("udp conn attempt %d", i)
+		g.logger.Debug(fmt.Sprintf("udp conn attempt: %d", i))
 		conn, err = g.openConnection()
 		if err == nil || i == _maxConnAttempts {
 			return
@@ -189,10 +193,11 @@ func (g *grillClient) openConnection() (conn net.Conn, err error) {
 	if conn, err = net.DialUDP("udp4", nil, g.grillAddr); err != nil {
 		return
 	}
-	if err = conn.SetReadDeadline(time.Now().Add(_connReadDeadline)); err != nil {
+	now := time.Now()
+	if err = conn.SetReadDeadline(now.Add(_connReadDeadline)); err != nil {
 		return
 	}
-	if err = conn.SetWriteDeadline(time.Now().Add(_connWriteDeadline)); err != nil {
+	if err = conn.SetWriteDeadline(now.Add(_connWriteDeadline)); err != nil {
 		return
 	}
 	g.logger.Debug("opened new udp connection")
@@ -201,6 +206,6 @@ func (g *grillClient) openConnection() (conn net.Conn, err error) {
 
 func (g *grillClient) safeCloseConn(conn net.Conn) {
 	if err := conn.Close(); err != nil {
-		g.logger.WithError(err).Error("err closing udp conn: ", err.Error())
+		g.logger.Error("err closing udp conn", zap.Error(err))
 	}
 }
