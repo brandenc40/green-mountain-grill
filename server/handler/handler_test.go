@@ -6,12 +6,13 @@ import (
 	"testing"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/google/uuid"
 
 	gmg "github.com/brandenc40/green-mountain-grill"
 	"github.com/brandenc40/green-mountain-grill/mocks"
 	"github.com/jasonlvhit/gocron"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
 )
@@ -28,7 +29,7 @@ func (suite *HandlerTestSuite) SetupTest() {
 	suite.clientMock = &mocks.Client{}
 	suite.repoMock = &mocks.Repository{}
 	params := Params{
-		Logger:      logrus.New(),
+		Logger:      zap.NewNop(),
 		GrillClient: suite.clientMock,
 		Repository:  suite.repoMock,
 		Scheduler:   gocron.NewScheduler(),
