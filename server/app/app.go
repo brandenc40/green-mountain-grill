@@ -11,7 +11,7 @@ import (
 	"go.uber.org/fx"
 )
 
-var FXModule = fx.Options(
+var Options = fx.Options(
 	// build dependencies
 	config.Module,
 	grillclient.Module,
@@ -26,5 +26,5 @@ var FXModule = fx.Options(
 )
 
 func App() *fx.App {
-	return fx.New(FXModule)
+	return fx.New(logger.FxOption, Options)
 }

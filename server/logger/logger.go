@@ -1,23 +1,43 @@
 package logger
 
 import (
+	"fmt"
+	"log"
 	"os"
-
-	"go.uber.org/zap/zapcore"
 
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
 
-var Module = fx.Provide(New)
+var (
+	Module = fx.Provide(New)
 
-func New() (*zap.Logger, error) {
-	logger, err := zap.NewDevelopment()
-	if err != nil {
-		return nil, err
-	}
+	FxOption     fx.Option
+	GlobalLogger *zap.Logger
+)
+
+func init() {
+	config := zap.NewDevelopmentConfig()
 	if os.Getenv("ENVIRONMENT") == "production" {
-		logger = logger.WithOptions(zap.IncreaseLevel(zapcore.InfoLevel))
+		config.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
 	}
-	return logger, nil
+	logger, err := config.Build()
+	if err != nil {
+		log.Fatal(err)
+	}
+	GlobalLogger = logger
+	FxOption = fx.Logger(fxLogger{logger})
+}
+
+func New() *zap.Logger {
+	return GlobalLogger
+}
+
+// fxLogger implements the fx.Printer interface for use as the FX app logger
+type fxLogger struct {
+	*zap.Logger
+}
+
+func (l fxLogger) Printf(s string, args ...interface{}) {
+	l.Info(fmt.Sprintf(s, args...))
 }
