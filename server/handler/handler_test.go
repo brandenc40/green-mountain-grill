@@ -6,15 +6,13 @@ import (
 	"testing"
 	"time"
 
-	"go.uber.org/zap"
-
-	"github.com/google/uuid"
-
 	gmg "github.com/brandenc40/green-mountain-grill"
 	"github.com/brandenc40/green-mountain-grill/mocks"
+	"github.com/google/uuid"
 	"github.com/jasonlvhit/gocron"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/zap"
 )
 
 type HandlerTestSuite struct {
