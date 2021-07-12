@@ -9,14 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var (
-	Module = fx.Provide(New)
-
-	FxOption     fx.Option
-	GlobalLogger *zap.Logger
-)
-
-func init() {
+func BuildFxOptions() fx.Option {
 	config := zap.NewDevelopmentConfig()
 	if os.Getenv("ENVIRONMENT") == "production" {
 		config.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
@@ -25,12 +18,10 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	GlobalLogger = logger
-	FxOption = fx.Logger(fxLogger{logger})
-}
-
-func New() *zap.Logger {
-	return GlobalLogger
+	return fx.Options(
+		fx.Provide(func() *zap.Logger { return logger }),
+		fx.Logger(fxLogger{logger}),
+	)
 }
 
 // fxLogger implements the fx.Printer interface for use as the FX app logger

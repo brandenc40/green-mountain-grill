@@ -12,11 +12,13 @@ import (
 )
 
 var Options = fx.Options(
-	// build dependencies
+	// build single logger object to be used by fx and dep injection
+	logger.BuildFxOptions(),
+
+	// build dependency modules
 	config.Module,
 	grillclient.Module,
 	handler.Module,
-	logger.Module,
 	respository.Module,
 	scheduler.Module,
 	server.Module,
@@ -26,5 +28,5 @@ var Options = fx.Options(
 )
 
 func App() *fx.App {
-	return fx.New(logger.FxOption, Options)
+	return fx.New(Options)
 }
