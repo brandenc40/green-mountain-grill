@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/andybalholm/brotli v1.0.3 // indirect
 	github.com/fasthttp/router v1.4.0
-	github.com/google/uuid v1.2.0
+	github.com/google/uuid v1.3.0
 	github.com/jasonlvhit/gocron v0.0.1
 	github.com/klauspost/compress v1.13.1 // indirect
 	github.com/stretchr/testify v1.7.0
