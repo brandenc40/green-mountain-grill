@@ -26,8 +26,8 @@ type Client interface {
 
 // Params - Parameters to build a new Client
 type Params struct {
-	GrillIP         net.IP
-	GrillPort       int
+	GrillIP         net.IP        // required
+	GrillPort       int           // required
 	Logger          *zap.Logger   // default zap.NewDevelopment()
 	ReadTimeout     time.Duration // default 2 seconds
 	WriteTimeout    time.Duration // default 1 second
