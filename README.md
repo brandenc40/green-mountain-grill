@@ -28,7 +28,7 @@ type Client interface {
 type Params struct {
 	GrillIP         net.IP
 	GrillPort       int
-	Logger          *logrus.Logger
+	Logger          *zap.Logger
 	ReadTimeout     time.Duration // default 2 seconds
 	WriteTimeout    time.Duration // default 1 second
 	MaxConnAttempts int           // default 5
