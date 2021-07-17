@@ -4,12 +4,9 @@ package handler
 import (
 	"errors"
 	"testing"
-	"time"
 
 	gmg "github.com/brandenc40/green-mountain-grill"
 	"github.com/brandenc40/green-mountain-grill/mocks"
-	"github.com/google/uuid"
-	"github.com/jasonlvhit/gocron"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/zap"
@@ -30,7 +27,6 @@ func (suite *HandlerTestSuite) SetupTest() {
 		Logger:      zap.NewNop(),
 		GrillClient: suite.clientMock,
 		Repository:  suite.repoMock,
-		Scheduler:   gocron.NewScheduler(),
 	}
 	suite.handler = New(params)
 }
@@ -66,21 +62,4 @@ func (suite *HandlerTestSuite) TestGetGrillState_ErrorUnavailable() {
 	suite.Equal("grill is unreachable: error", string(ctx.Response.Body()))
 	suite.Equal(fasthttp.StatusServiceUnavailable, ctx.Response.StatusCode())
 	suite.clientMock.AssertExpectations(suite.T())
-}
-
-func (suite *HandlerTestSuite) TestNewSession_Success() {
-	suite.clientMock.On("IsAvailable").Return(true)
-	ctx := fasthttp.RequestCtx{}
-	suite.handler.NewSession(&ctx)
-	_, err := uuid.Parse(string(ctx.Response.Body()))
-	suite.NoError(err)
-	suite.Equal(200, ctx.Response.StatusCode())
-	time.Sleep(time.Millisecond) // allow goroutine to start
-	suite.NotNil(suite.handler.stopChannel)
-	suite.True(suite.handler.isMonitoring)
-	suite.clientMock.AssertExpectations(suite.T())
-	suite.repoMock.AssertExpectations(suite.T())
-	suite.handler.stopMonitoringGrill()
-	suite.False(suite.handler.isMonitoring)
-	suite.Nil(suite.handler.stopChannel)
 }

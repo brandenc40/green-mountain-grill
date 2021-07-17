@@ -5,8 +5,8 @@ import (
 	"github.com/brandenc40/green-mountain-grill/server/grillclient"
 	"github.com/brandenc40/green-mountain-grill/server/handler"
 	"github.com/brandenc40/green-mountain-grill/server/logger"
+	"github.com/brandenc40/green-mountain-grill/server/poller"
 	"github.com/brandenc40/green-mountain-grill/server/respository"
-	"github.com/brandenc40/green-mountain-grill/server/scheduler"
 	"github.com/brandenc40/green-mountain-grill/server/server"
 	"go.uber.org/fx"
 )
@@ -20,7 +20,7 @@ var Options = fx.Options(
 	grillclient.Module,
 	handler.Module,
 	respository.Module,
-	scheduler.Module,
+	poller.Module,
 	server.Module,
 
 	// invoke route registration for the server on startup

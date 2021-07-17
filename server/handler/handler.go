@@ -2,13 +2,13 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
+	"strconv"
+	"time"
 
 	gmg "github.com/brandenc40/green-mountain-grill"
+	"github.com/brandenc40/green-mountain-grill/server/poller"
 	repo "github.com/brandenc40/green-mountain-grill/server/respository"
-	"github.com/brandenc40/green-mountain-grill/server/respository/mapper"
-	"github.com/google/uuid"
-	"github.com/jasonlvhit/gocron"
+	"github.com/fasthttp/websocket"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -25,35 +25,32 @@ type Params struct {
 	Logger      *zap.Logger
 	GrillClient gmg.Client
 	Repository  repo.Repository
-	Scheduler   *gocron.Scheduler
+	Poller      *poller.Poller
 }
 
 // New -
 func New(p Params) *Handler {
 	h := &Handler{
-		grill:              p.GrillClient,
-		logger:             p.Logger,
-		repo:               p.Repository,
-		currentSessionUUID: uuid.Nil,
-		scheduler:          p.Scheduler,
+		grill:  p.GrillClient,
+		logger: p.Logger,
+		repo:   p.Repository,
+		poller: p.Poller,
 	}
 	return h
 }
 
 // Handler -
 type Handler struct {
-	grill              gmg.Client
-	logger             *zap.Logger
-	repo               repo.Repository
-	currentSessionUUID uuid.UUID
-	scheduler          *gocron.Scheduler
-	stopChannel        chan bool
-	isMonitoring       bool
+	grill    gmg.Client
+	logger   *zap.Logger
+	repo     repo.Repository
+	poller   *poller.Poller
+	upgrader websocket.FastHTTPUpgrader
 }
 
 // GetGrillState -
-func (c *Handler) GetGrillState(ctx *fasthttp.RequestCtx) {
-	state, err := c.grill.GetState()
+func (h *Handler) GetGrillState(ctx *fasthttp.RequestCtx) {
+	state, err := h.grill.GetState()
 	if err != nil {
 		if _, ok := err.(gmg.GrillUnreachableErr); ok {
 			ctx.Error(err.Error(), fasthttp.StatusServiceUnavailable)
@@ -73,8 +70,8 @@ func (c *Handler) GetGrillState(ctx *fasthttp.RequestCtx) {
 }
 
 // GetGrillID -
-func (c *Handler) GetGrillID(ctx *fasthttp.RequestCtx) {
-	id, err := c.grill.GetID()
+func (h *Handler) GetGrillID(ctx *fasthttp.RequestCtx) {
+	id, err := h.grill.GetID()
 	if err != nil {
 		ctx.Error(err.Error(), fasthttp.StatusInternalServerError)
 		return
@@ -84,8 +81,8 @@ func (c *Handler) GetGrillID(ctx *fasthttp.RequestCtx) {
 }
 
 // GetGrillFirmware -
-func (c *Handler) GetGrillFirmware(ctx *fasthttp.RequestCtx) {
-	id, err := c.grill.GetFirmware()
+func (h *Handler) GetGrillFirmware(ctx *fasthttp.RequestCtx) {
+	id, err := h.grill.GetFirmware()
 	if err != nil {
 		ctx.Error(err.Error(), fasthttp.StatusInternalServerError)
 		return
@@ -94,25 +91,33 @@ func (c *Handler) GetGrillFirmware(ctx *fasthttp.RequestCtx) {
 	ctx.SetStatusCode(fasthttp.StatusOK)
 }
 
-// NewSession -
-func (c *Handler) NewSession(ctx *fasthttp.RequestCtx) {
-	if !c.grill.IsAvailable() {
-		ctx.Error("grill is not available", fasthttp.StatusServiceUnavailable)
-		return
-	}
-	u, err := uuid.NewRandom()
+// StartPolling -
+func (h *Handler) StartPolling(ctx *fasthttp.RequestCtx) {
+	err := h.poller.StartPolling(time.Minute)
 	if err != nil {
 		ctx.Error(err.Error(), fasthttp.StatusInternalServerError)
 		return
 	}
-	c.currentSessionUUID = u
-	c.monitorGrillAsync()
-	ctx.SetBodyString(c.currentSessionUUID.String())
+	ctx.SetBodyString(h.poller.CurrentSession().String())
 	ctx.SetStatusCode(fasthttp.StatusOK)
 }
 
-func (c *Handler) GetSessionData(ctx *fasthttp.RequestCtx) {
-	hist, err := c.repo.GetStateHistory(c.currentSessionUUID)
+// StopPolling -
+func (h *Handler) StopPolling(ctx *fasthttp.RequestCtx) {
+	h.poller.StopPolling()
+	ctx.SetBodyString("OK")
+	ctx.SetStatusCode(fasthttp.StatusOK)
+}
+
+// ViewSubscribers -
+func (h *Handler) ViewSubscribers(ctx *fasthttp.RequestCtx) {
+	ctx.SetBodyString(strconv.Itoa(h.poller.Subscribers()))
+	ctx.SetStatusCode(fasthttp.StatusOK)
+}
+
+// GetSessionData -
+func (h *Handler) GetSessionData(ctx *fasthttp.RequestCtx) {
+	hist, err := h.repo.GetStateHistory(h.poller.CurrentSession())
 	if err != nil {
 		ctx.Error(err.Error(), fasthttp.StatusInternalServerError)
 		return
@@ -124,51 +129,4 @@ func (c *Handler) GetSessionData(ctx *fasthttp.RequestCtx) {
 	}
 	ctx.SetBody(marshalled)
 	ctx.SetStatusCode(fasthttp.StatusOK)
-}
-
-// monitorGrillAsync - start monitoring and report errors asynchronously
-func (c *Handler) monitorGrillAsync() {
-	go func() {
-		if err := c.monitorGrill(); err != nil {
-			c.logger.Error("error monitoring grill", zap.Error(err))
-		}
-	}()
-}
-
-// monitorGrill - check grill state and store to database once every minute
-func (c *Handler) monitorGrill() error {
-	if c.isMonitoring {
-		c.stopMonitoringGrill()
-		c.scheduler.Clear()
-	}
-	err := c.scheduler.Every(1).Minute().Do(c.storeGrillState)
-	if err != nil {
-		return err
-	}
-	c.stopChannel = c.scheduler.Start()
-	c.isMonitoring = true
-	return nil
-}
-
-func (c *Handler) stopMonitoringGrill() {
-	c.stopChannel <- true
-	c.isMonitoring = false
-	close(c.stopChannel)
-	c.stopChannel = nil
-}
-
-// storeGrillState - get current state and store to db
-func (c *Handler) storeGrillState() (*gmg.State, error) {
-	if c.currentSessionUUID == uuid.Nil {
-		return nil, errors.New("no grill session UUID has been set")
-	}
-	state, err := c.grill.GetState()
-	if err != nil {
-		return nil, err
-	}
-	stateModel := mapper.GrillStateEntityToModel(state, c.currentSessionUUID)
-	if err := c.repo.InsertStateData(stateModel); err != nil {
-		return nil, err
-	}
-	return state, nil
 }
