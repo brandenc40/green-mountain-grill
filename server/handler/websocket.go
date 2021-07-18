@@ -2,8 +2,10 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
+	"github.com/brandenc40/green-mountain-grill/server/respository/model"
 	"github.com/fasthttp/websocket"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/zap"
@@ -21,9 +23,15 @@ const (
 // SubscribeToPoller -
 func (h *Handler) SubscribeToPoller(ctx *fasthttp.RequestCtx) {
 	err := h.webSocket.Upgrade(ctx, func(ws *websocket.Conn) {
-		closeChan := make(chan bool)
-		go h.subWriter(ws, closeChan)
-		h.subReader(ws, closeChan)
+		channel, unsubscribe := h.poller.Subscribe()
+		defer unsubscribe()
+		go h.withRecover(func() {
+			h.subWriter(ws, channel)
+		})
+		h.withRecover(func() {
+			h.subReader(ws)
+		})
+		h.logger.Info("unsubscribe() called")
 	})
 	if err != nil {
 		if _, ok := err.(websocket.HandshakeError); ok {
@@ -34,43 +42,37 @@ func (h *Handler) SubscribeToPoller(ctx *fasthttp.RequestCtx) {
 	}
 }
 
-func (h *Handler) subReader(ws *websocket.Conn, closeWriterChan chan bool) {
+func (h *Handler) subReader(ws *websocket.Conn) {
 	ws.SetReadLimit(512)
 	_ = ws.SetReadDeadline(time.Now().Add(pongWait))
-	ws.SetPongHandler(func(string) error {
-		_ = ws.SetReadDeadline(time.Now().Add(pongWait))
-		return nil
-	})
+	ws.SetPongHandler(func(string) error { _ = ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
 		_, _, err := ws.ReadMessage()
 		if err != nil {
 			break
 		}
 	}
-	closeWriterChan <- true
+	h.logger.Info("subReader() ended")
 }
 
-func (h *Handler) subWriter(ws *websocket.Conn, closeWriterChan chan bool) {
+func (h *Handler) subWriter(ws *websocket.Conn, channel chan *model.GrillState) {
 	pingTicker := time.NewTicker(pingPeriod)
-	channel, unsubscribe := h.poller.Subscribe()
 	defer func() {
 		pingTicker.Stop()
-		unsubscribe()
 		func() { // close in the writer since this will run in a goroutine
 			if err := ws.Close(); err != nil {
 				h.logger.Error("error closing websocket conn", zap.Error(err))
 			}
 		}()
 	}()
-	_ = ws.SetWriteDeadline(time.Now().Add(writeWait))
-	err := ws.WriteMessage(websocket.TextMessage, []byte("hello there"))
-	if err != nil {
-		h.logger.Error("websocket write error", zap.Error(err))
-		return
-	}
 	for {
 		select {
-		case m := <-channel:
+		case m, ok := <-channel:
+			if !ok {
+				// The poller closed the channel.
+				h.logger.Info("The poller closed the channel")
+				return
+			}
 			b, err := json.Marshal(m)
 			if err != nil {
 				h.logger.Error("unable to marshal", zap.Error(err))
@@ -88,8 +90,20 @@ func (h *Handler) subWriter(ws *websocket.Conn, closeWriterChan chan bool) {
 				h.logger.Error("websocket write ping error", zap.Error(err))
 				return
 			}
-		case <-closeWriterChan:
-			return
 		}
 	}
+}
+
+func (h *Handler) withRecover(fn func()) {
+	defer func() {
+		if r := recover(); r != nil {
+			err, ok := r.(error)
+			if !ok {
+				err = fmt.Errorf("pkg: %v", r)
+			}
+			h.logger.Error("panic recovered: ", zap.Error(err))
+		}
+	}()
+
+	fn()
 }
