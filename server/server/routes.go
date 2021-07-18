@@ -20,8 +20,8 @@ func RegisterRoutes(server *Server, handler *handler.Handler) {
 		{fasthttp.MethodGet, "/api/session", handler.GetSessionData},
 		{fasthttp.MethodGet, "/api/polling/start", handler.StartPolling},
 		{fasthttp.MethodGet, "/api/polling/stop", handler.StopPolling},
-		{router.MethodWild, "/api/polling/subscribe", handler.SubscribeToPoller},
 		{fasthttp.MethodGet, "/api/polling/subscribers", handler.ViewSubscribers},
+		{router.MethodWild, "/api/polling/subscribe", handler.SubscribeToPoller}, // websocket
 	}
 	for _, r := range routes {
 		server.router.Handle(r.Method, r.Path, r.Handler)

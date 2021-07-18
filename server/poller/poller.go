@@ -2,13 +2,13 @@ package poller
 
 import (
 	"context"
+	"sync"
 	"time"
-
-	"github.com/brandenc40/green-mountain-grill/server/respository/model"
 
 	gmg "github.com/brandenc40/green-mountain-grill"
 	"github.com/brandenc40/green-mountain-grill/server/respository"
 	"github.com/brandenc40/green-mountain-grill/server/respository/mapper"
+	"github.com/brandenc40/green-mountain-grill/server/respository/model"
 	"github.com/google/uuid"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -48,13 +48,14 @@ func New(p Params) *Poller {
 
 // Poller -
 type Poller struct {
-	grillClient    gmg.Client
-	logger         *zap.Logger
-	repo           respository.Repository
-	currentSession uuid.UUID
-	stopChan       chan bool
-	isPolling      bool
-	subscribers    map[uuid.UUID]chan *model.GrillState
+	grillClient     gmg.Client
+	logger          *zap.Logger
+	repo            respository.Repository
+	currentSession  uuid.UUID
+	stopChan        chan bool
+	isPolling       bool
+	subscribers     map[uuid.UUID]chan *model.GrillState
+	subscriberMutex sync.Mutex
 }
 
 // NewSession -
@@ -100,19 +101,26 @@ func (p *Poller) StartPolling(interval time.Duration) error {
 	return nil
 }
 
-// Subscribers -
+// Subscribers - The current number of subscribers
 func (p *Poller) Subscribers() int {
 	return len(p.subscribers)
 }
 
-// Subscribe -
+// Subscribe - Subscribe to all polls of the current grill state, the state structs will be sent through the channel
+// when they are polled from the grill.
+//
+// `defer unsubscribe()` should be used to ensure channels are closed after the subscriber is finished subscribing
 func (p *Poller) Subscribe() (channel chan *model.GrillState, unsubscribe func()) {
+	p.subscriberMutex.Lock()
+	defer p.subscriberMutex.Unlock()
 	u := uuid.New()
 	channel = make(chan *model.GrillState)
 	p.subscribers[u] = channel
 	unsubscribe = func() {
-		close(channel)
+		p.subscriberMutex.Lock()
+		defer p.subscriberMutex.Unlock()
 		delete(p.subscribers, u)
+		close(channel)
 	}
 	return
 }
@@ -130,9 +138,7 @@ func (p *Poller) pollGrill(interval time.Duration) {
 				p.isPolling = false
 			}
 			m := mapper.GrillStateEntityToModel(s, p.currentSession)
-			for _, subChan := range p.subscribers {
-				subChan <- m
-			}
+			p.broadcastToSubscribers(m)
 			if err := p.repo.InsertStateData(m); err != nil {
 				p.logger.Error("error inserting state data", zap.Error(err))
 				p.isPolling = false
@@ -140,5 +146,13 @@ func (p *Poller) pollGrill(interval time.Duration) {
 		case <-p.stopChan:
 			p.isPolling = false
 		}
+	}
+}
+
+func (p *Poller) broadcastToSubscribers(model *model.GrillState) {
+	p.subscriberMutex.Lock()
+	defer p.subscriberMutex.Unlock()
+	for _, subChan := range p.subscribers {
+		subChan <- model
 	}
 }

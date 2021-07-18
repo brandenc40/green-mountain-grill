@@ -20,7 +20,7 @@ const (
 
 // SubscribeToPoller -
 func (h *Handler) SubscribeToPoller(ctx *fasthttp.RequestCtx) {
-	err := h.upgrader.Upgrade(ctx, func(ws *websocket.Conn) {
+	err := h.webSocket.Upgrade(ctx, func(ws *websocket.Conn) {
 		closeChan := make(chan bool)
 		go h.subWriter(ws, closeChan)
 		h.subReader(ws, closeChan)
@@ -36,16 +36,9 @@ func (h *Handler) SubscribeToPoller(ctx *fasthttp.RequestCtx) {
 
 func (h *Handler) subReader(ws *websocket.Conn, closeWriterChan chan bool) {
 	ws.SetReadLimit(512)
-	if err := ws.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
-		h.logger.Error("unable to set read deadline", zap.Error(err))
-		closeWriterChan <- true
-		return
-	}
+	_ = ws.SetReadDeadline(time.Now().Add(pongWait))
 	ws.SetPongHandler(func(string) error {
-		if err := ws.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
-			h.logger.Error("unable to set read deadline in pong handler", zap.Error(err))
-			return err
-		}
+		_ = ws.SetReadDeadline(time.Now().Add(pongWait))
 		return nil
 	})
 	for {
@@ -69,10 +62,7 @@ func (h *Handler) subWriter(ws *websocket.Conn, closeWriterChan chan bool) {
 			}
 		}()
 	}()
-	if err := ws.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
-		h.logger.Error("unable to set write deadline", zap.Error(err))
-		return
-	}
+	_ = ws.SetWriteDeadline(time.Now().Add(writeWait))
 	err := ws.WriteMessage(websocket.TextMessage, []byte("hello there"))
 	if err != nil {
 		h.logger.Error("websocket write error", zap.Error(err))
@@ -86,20 +76,14 @@ func (h *Handler) subWriter(ws *websocket.Conn, closeWriterChan chan bool) {
 				h.logger.Error("unable to marshal", zap.Error(err))
 				return
 			}
-			if err := ws.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
-				h.logger.Error("unable to set write deadline", zap.Error(err))
-				return
-			}
+			_ = ws.SetWriteDeadline(time.Now().Add(writeWait))
 			err = ws.WriteMessage(websocket.TextMessage, b)
 			if err != nil {
 				h.logger.Error("websocket write error", zap.Error(err))
 				return
 			}
 		case <-pingTicker.C:
-			if err := ws.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
-				h.logger.Error("unable to set write deadline", zap.Error(err))
-				return
-			}
+			_ = ws.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := ws.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 				h.logger.Error("websocket write ping error", zap.Error(err))
 				return

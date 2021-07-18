@@ -41,11 +41,11 @@ func New(p Params) *Handler {
 
 // Handler -
 type Handler struct {
-	grill    gmg.Client
-	logger   *zap.Logger
-	repo     repo.Repository
-	poller   *poller.Poller
-	upgrader websocket.FastHTTPUpgrader
+	grill     gmg.Client
+	logger    *zap.Logger
+	repo      repo.Repository
+	poller    *poller.Poller
+	webSocket websocket.FastHTTPUpgrader
 }
 
 // GetGrillState -
