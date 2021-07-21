@@ -1,17 +1,15 @@
 package server
 
 import (
-	"bytes"
 	"context"
 	"os"
-	"strconv"
 	"time"
 
-	"go.uber.org/zap"
-
-	"github.com/fasthttp/router"
-	"github.com/valyala/fasthttp"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"go.uber.org/fx"
+	"go.uber.org/zap"
 )
 
 type Params struct {
@@ -23,22 +21,27 @@ type Params struct {
 	Shutdowner fx.Shutdowner
 }
 
+type Server struct {
+	*fiber.App
+}
+
 func New(p Params) *Server {
-	r := router.New()
-	s := &Server{
-		config: p.Config,
-		logger: p.Logger,
-		router: r,
-		httpServer: &fasthttp.Server{
-			Handler:     r.Handler,
-			ReadTimeout: 3 * time.Second,
-		},
+	app := fiber.New(fiber.Config{
+		ReadTimeout: 3 * time.Second,
+		AppName:     "green-mountain-grill-server",
+	})
+	app.Use(recover.New())
+	if p.Logger.Core().Enabled(zap.DebugLevel) {
+		app.Use(logger.New(logger.Config{
+			TimeFormat: time.RFC822,
+		}))
 	}
+	s := &Server{App: app}
 	p.Lifecycle.Append(
 		fx.Hook{
 			OnStart: func(context.Context) error {
 				go func() {
-					err := s.Run()
+					err := s.Listen(p.Config.ServerPort)
 					if err != nil {
 						p.Logger.Error("unable to start server", zap.Error(err))
 						if err := p.Shutdowner.Shutdown(); err != nil {
@@ -50,62 +53,10 @@ func New(p Params) *Server {
 				return nil
 			},
 			OnStop: func(ctx context.Context) error {
+				p.Logger.Info("shutting down server")
 				return s.Shutdown()
 			},
 		},
 	)
 	return s
-}
-
-type Server struct {
-	config     *Config
-	logger     *zap.Logger
-	httpServer *fasthttp.Server
-	router     *router.Router
-}
-
-func (s *Server) Run() error {
-	s.logger.Info("server running on port " + s.config.ServerPort)
-	return s.httpServer.ListenAndServe(s.config.ServerPort)
-}
-
-func (s *Server) Shutdown() error {
-	s.logger.Info("shutting down server")
-	return s.httpServer.Shutdown()
-}
-
-func (s *Server) WithLogging(h fasthttp.RequestHandler) fasthttp.RequestHandler {
-	return func(ctx *fasthttp.RequestCtx) {
-		var b bytes.Buffer
-		// log request
-		if s.logger.Core().Enabled(zap.DebugLevel) {
-			b.WriteString("[REQUEST ")
-			b.Write(ctx.Method())
-			b.WriteString(" ")
-			b.Write(ctx.Path())
-			b.WriteString("]")
-			s.logger.Debug(b.String())
-			b.Reset()
-		}
-
-		// start timer and handle
-		start := time.Now()
-		h(ctx)
-		dur := time.Since(start).String()
-
-		// log response
-		if s.logger.Core().Enabled(zap.DebugLevel) {
-			b.WriteString("[RESPONSE ")
-			b.WriteString(strconv.Itoa(ctx.Response.StatusCode()))
-			if ctx.Response.StatusCode() != fasthttp.StatusOK {
-				b.WriteString(" (")
-				b.Write(ctx.Response.Body())
-				b.WriteString(")")
-			}
-			b.WriteString(" ")
-			b.WriteString(dur)
-			b.WriteString("]")
-			s.logger.Debug(b.String())
-		}
-	}
 }

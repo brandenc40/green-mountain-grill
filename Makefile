@@ -1,12 +1,13 @@
 SERVER_BINARY_NAME=server
+FRONTEND_PATH = frontend/
 
 export APP_ROT = $(CURDIR)
 
 .PHONY: default
-default: generate build mocks
+default: build-js generate build mocks
 
 .PHONY: build
-build:
+build: build-js
 	@echo "Building Binary..."
 	@go build -o bin/${SERVER_BINARY_NAME} cmd/server/main.go
 
@@ -50,3 +51,12 @@ generate: .gen .tidy
 .PHONY: .tidy
 .tidy:
 	@go mod tidy
+
+.PHONY: build-js
+build-js:
+	@echo Building React App..
+	@npm run-script build -prefix $(FRONTEND_PATH)
+
+.PHONY: dev-react
+dev-react:
+	@npm run-script start -prefix $(FRONTEND_PATH)

@@ -2,12 +2,11 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/brandenc40/green-mountain-grill/server/respository/model"
 	"github.com/fasthttp/websocket"
-	"github.com/valyala/fasthttp"
+	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
 
@@ -21,16 +20,12 @@ const (
 )
 
 // SubscribeToPoller -
-func (h *Handler) SubscribeToPoller(ctx *fasthttp.RequestCtx) {
-	err := h.webSocket.Upgrade(ctx, func(ws *websocket.Conn) {
+func (h *Handler) SubscribeToPoller(ctx *fiber.Ctx) error {
+	err := h.webSocket.Upgrade(ctx.Context(), func(ws *websocket.Conn) {
 		channel, unsubscribe := h.poller.Subscribe()
 		defer unsubscribe()
-		go h.withRecover(func() {
-			h.subWriter(ws, channel)
-		})
-		h.withRecover(func() {
-			h.subReader(ws)
-		})
+		h.subWriter(ws, channel)
+		h.subReader(ws)
 		h.logger.Info("unsubscribe() called")
 	})
 	if err != nil {
@@ -38,8 +33,9 @@ func (h *Handler) SubscribeToPoller(ctx *fasthttp.RequestCtx) {
 			h.logger.Error("websocket handshake error", zap.Error(err))
 		}
 		h.logger.Error("unable to upgrade to websocket", zap.Error(err))
-		return
+		return err
 	}
+	return nil
 }
 
 func (h *Handler) subReader(ws *websocket.Conn) {
@@ -92,18 +88,4 @@ func (h *Handler) subWriter(ws *websocket.Conn, channel chan *model.GrillState) 
 			}
 		}
 	}
-}
-
-func (h *Handler) withRecover(fn func()) {
-	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			if !ok {
-				err = fmt.Errorf("pkg: %v", r)
-			}
-			h.logger.Error("panic recovered: ", zap.Error(err))
-		}
-	}()
-
-	fn()
 }

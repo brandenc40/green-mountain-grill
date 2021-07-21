@@ -2,28 +2,27 @@ package server
 
 import (
 	"github.com/brandenc40/green-mountain-grill/server/handler"
-	"github.com/fasthttp/router"
-	"github.com/valyala/fasthttp"
+	"github.com/gofiber/fiber/v2/middleware/monitor"
 )
 
-type route struct {
-	Method  string
-	Path    string
-	Handler fasthttp.RequestHandler
+func RegisterRoutes(server *Server, handler *handler.Handler) {
+	registerAPIRoutes(server, handler)
+	registerFrontendRoutes(server)
 }
 
-func RegisterRoutes(server *Server, handler *handler.Handler) {
-	routes := []route{
-		{fasthttp.MethodGet, "/api/state", handler.GetGrillState},
-		{fasthttp.MethodGet, "/api/id", handler.GetGrillID},
-		{fasthttp.MethodGet, "/api/firmware", handler.GetGrillFirmware},
-		{fasthttp.MethodGet, "/api/session", handler.GetSessionData},
-		{fasthttp.MethodGet, "/api/polling/start", handler.StartPolling},
-		{fasthttp.MethodGet, "/api/polling/stop", handler.StopPolling},
-		{fasthttp.MethodGet, "/api/polling/subscribers", handler.ViewSubscribers},
-		{router.MethodWild, "/api/polling/subscribe", handler.SubscribeToPoller}, // websocket
-	}
-	for _, r := range routes {
-		server.router.Handle(r.Method, r.Path, r.Handler)
-	}
+func registerAPIRoutes(server *Server, handler *handler.Handler) {
+	api := server.Group("/api")
+	api.Get("/state", handler.GetGrillState)
+	api.Get("/id", handler.GetGrillID)
+	api.Get("/firmware", handler.GetGrillFirmware)
+	api.Get("/session", handler.GetSessionData)
+	api.Get("/polling/start", handler.StartPolling)
+	api.Get("/polling/stop", handler.StopPolling)
+	api.Get("/polling/subscribers", handler.ViewSubscribers)
+	api.Get("/polling/subscribe", handler.SubscribeToPoller)
+}
+
+func registerFrontendRoutes(server *Server) {
+	server.Static("/", "./frontend/build")
+	server.Get("/_dashboard", monitor.New())
 }

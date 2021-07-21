@@ -9,7 +9,7 @@ import (
 	"github.com/brandenc40/green-mountain-grill/server/poller"
 	repo "github.com/brandenc40/green-mountain-grill/server/respository"
 	"github.com/fasthttp/websocket"
-	"github.com/valyala/fasthttp"
+	"github.com/gofiber/fiber/v2"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -49,84 +49,69 @@ type Handler struct {
 }
 
 // GetGrillState -
-func (h *Handler) GetGrillState(ctx *fasthttp.RequestCtx) {
+func (h *Handler) GetGrillState(ctx *fiber.Ctx) error {
 	state, err := h.grill.GetState()
 	if err != nil {
 		if _, ok := err.(gmg.GrillUnreachableErr); ok {
-			ctx.Error(err.Error(), fasthttp.StatusServiceUnavailable)
-			return
+			return fiber.NewError(fiber.StatusServiceUnavailable, err.Error())
 		}
-		ctx.Error(err.Error(), fasthttp.StatusInternalServerError)
-		return
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	marshalled, err := json.Marshal(state)
 	if err != nil {
-		ctx.Error(err.Error(), fasthttp.StatusInternalServerError)
-		return
+		return err
 	}
-	ctx.SetContentType(contentTypeJSON)
-	ctx.SetStatusCode(fasthttp.StatusOK)
-	ctx.SetBody(marshalled)
+	return ctx.Status(fiber.StatusOK).Type(contentTypeJSON).Send(marshalled)
 }
 
 // GetGrillID -
-func (h *Handler) GetGrillID(ctx *fasthttp.RequestCtx) {
+func (h *Handler) GetGrillID(ctx *fiber.Ctx) error {
 	id, err := h.grill.GetID()
 	if err != nil {
-		ctx.Error(err.Error(), fasthttp.StatusInternalServerError)
-		return
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
-	ctx.SetBody(id)
-	ctx.SetStatusCode(fasthttp.StatusOK)
+	return ctx.Status(fiber.StatusOK).Send(id)
 }
 
 // GetGrillFirmware -
-func (h *Handler) GetGrillFirmware(ctx *fasthttp.RequestCtx) {
-	id, err := h.grill.GetFirmware()
+func (h *Handler) GetGrillFirmware(ctx *fiber.Ctx) error {
+	firmware, err := h.grill.GetFirmware()
 	if err != nil {
-		ctx.Error(err.Error(), fasthttp.StatusInternalServerError)
-		return
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
-	ctx.SetBody(id)
-	ctx.SetStatusCode(fasthttp.StatusOK)
+	return ctx.Status(fiber.StatusOK).Send(firmware)
 }
 
 // StartPolling -
-func (h *Handler) StartPolling(ctx *fasthttp.RequestCtx) {
+func (h *Handler) StartPolling(ctx *fiber.Ctx) error {
 	err := h.poller.StartPolling(time.Minute)
 	if err != nil {
-		ctx.Error(err.Error(), fasthttp.StatusInternalServerError)
-		return
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
-	ctx.SetBodyString(h.poller.CurrentSession().String())
-	ctx.SetStatusCode(fasthttp.StatusOK)
+	sessionUUID := h.poller.CurrentSession().String()
+	return ctx.Status(fiber.StatusOK).SendString(sessionUUID)
 }
 
 // StopPolling -
-func (h *Handler) StopPolling(ctx *fasthttp.RequestCtx) {
+func (h *Handler) StopPolling(ctx *fiber.Ctx) error {
 	h.poller.StopPolling()
-	ctx.SetBodyString("OK")
-	ctx.SetStatusCode(fasthttp.StatusOK)
+	return ctx.Status(fiber.StatusOK).SendString("OK")
 }
 
 // ViewSubscribers -
-func (h *Handler) ViewSubscribers(ctx *fasthttp.RequestCtx) {
-	ctx.SetBodyString(strconv.Itoa(h.poller.Subscribers()))
-	ctx.SetStatusCode(fasthttp.StatusOK)
+func (h *Handler) ViewSubscribers(ctx *fiber.Ctx) error {
+	return ctx.Status(fiber.StatusOK).SendString(strconv.Itoa(h.poller.Subscribers()))
 }
 
 // GetSessionData -
-func (h *Handler) GetSessionData(ctx *fasthttp.RequestCtx) {
+func (h *Handler) GetSessionData(ctx *fiber.Ctx) error {
 	hist, err := h.repo.GetStateHistory(h.poller.CurrentSession())
 	if err != nil {
-		ctx.Error(err.Error(), fasthttp.StatusInternalServerError)
-		return
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	marshalled, err := json.Marshal(hist)
 	if err != nil {
-		ctx.Error(err.Error(), fasthttp.StatusInternalServerError)
-		return
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
-	ctx.SetBody(marshalled)
-	ctx.SetStatusCode(fasthttp.StatusOK)
+	return ctx.Status(fiber.StatusOK).Send(marshalled)
 }
