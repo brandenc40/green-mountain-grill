@@ -5,46 +5,43 @@ import (
 	"time"
 
 	"github.com/brandenc40/green-mountain-grill/server/respository/model"
-	"github.com/fasthttp/websocket"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/websocket/v2"
 	"go.uber.org/zap"
 )
 
 const (
-	// Time allowed to write the file to the client.
-	writeWait = 10 * time.Second
+	// Time allowed to write to the client.
+	writeWait = 2 * time.Second
 	// Time allowed to read the next pong message from the client.
-	pongWait = 60 * time.Second
+	pongWait = 10 * time.Second
 	// Send pings to client with this period. Must be less than pongWait.
-	pingPeriod = (pongWait * 9) / 10
+	pingPeriod = 5 * time.Second
 )
 
-// SubscribeToPoller -
-func (h *Handler) SubscribeToPoller(ctx *fiber.Ctx) error {
-	err := h.webSocket.Upgrade(ctx.Context(), func(ws *websocket.Conn) {
+func (h *Handler) BuildPollerSubscriberWSHandler() fiber.Handler {
+	return websocket.New(func(ws *websocket.Conn) {
 		channel, unsubscribe := h.poller.Subscribe()
 		defer unsubscribe()
 		h.subWriter(ws, channel)
 		h.subReader(ws)
 		h.logger.Info("unsubscribe() called")
 	})
-	if err != nil {
-		if _, ok := err.(websocket.HandshakeError); ok {
-			h.logger.Error("websocket handshake error", zap.Error(err))
-		}
-		h.logger.Error("unable to upgrade to websocket", zap.Error(err))
-		return err
-	}
-	return nil
 }
 
 func (h *Handler) subReader(ws *websocket.Conn) {
-	ws.SetReadLimit(512)
-	_ = ws.SetReadDeadline(time.Now().Add(pongWait))
-	ws.SetPongHandler(func(string) error { _ = ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	ws.SetReadDeadline(time.Now().Add(pongWait))
+	ws.SetPongHandler(func(string) error {
+		ws.SetReadDeadline(time.Now().Add(pongWait))
+		return nil
+	})
 	for {
-		_, _, err := ws.ReadMessage()
+		t, p, err := ws.ReadMessage()
+		h.logger.Info("received: ",
+			zap.Int("type", t),
+			zap.ByteString("p", p))
 		if err != nil {
+			h.logger.Error("received err: ", zap.Error(err))
 			break
 		}
 	}
@@ -61,27 +58,44 @@ func (h *Handler) subWriter(ws *websocket.Conn, channel chan *model.GrillState) 
 			}
 		}()
 	}()
+	statHist, err := h.repo.GetStateHistory(h.poller.CurrentSession())
+	if err != nil {
+		h.logger.Error("unable to get state history", zap.Error(err))
+		return
+	}
+	data, err := json.Marshal(statHist)
+	if err != nil {
+		h.logger.Error("unable to marshal state history", zap.Error(err))
+		return
+	}
+	ws.SetWriteDeadline(time.Now().Add(writeWait))
+	err = ws.WriteMessage(websocket.TextMessage, data)
+	if err != nil {
+		h.logger.Error("websocket write error", zap.Error(err))
+		return
+	}
 	for {
 		select {
 		case m, ok := <-channel:
 			if !ok {
-				// The poller closed the channel.
 				h.logger.Info("The poller closed the channel")
 				return
 			}
-			b, err := json.Marshal(m)
+			statHist = append(statHist, m)
+			b, err := json.Marshal(statHist)
 			if err != nil {
-				h.logger.Error("unable to marshal", zap.Error(err))
+				h.logger.Error("unable to marshal state history", zap.Error(err))
 				return
 			}
-			_ = ws.SetWriteDeadline(time.Now().Add(writeWait))
+			ws.SetWriteDeadline(time.Now().Add(writeWait))
 			err = ws.WriteMessage(websocket.TextMessage, b)
 			if err != nil {
 				h.logger.Error("websocket write error", zap.Error(err))
 				return
 			}
 		case <-pingTicker.C:
-			_ = ws.SetWriteDeadline(time.Now().Add(writeWait))
+			h.logger.Info("tick")
+			ws.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := ws.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 				h.logger.Error("websocket write ping error", zap.Error(err))
 				return

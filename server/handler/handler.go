@@ -8,7 +8,6 @@ import (
 	gmg "github.com/brandenc40/green-mountain-grill"
 	"github.com/brandenc40/green-mountain-grill/server/poller"
 	repo "github.com/brandenc40/green-mountain-grill/server/respository"
-	"github.com/fasthttp/websocket"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -41,11 +40,10 @@ func New(p Params) *Handler {
 
 // Handler -
 type Handler struct {
-	grill     gmg.Client
-	logger    *zap.Logger
-	repo      repo.Repository
-	poller    *poller.Poller
-	webSocket websocket.FastHTTPUpgrader
+	grill  gmg.Client
+	logger *zap.Logger
+	repo   repo.Repository
+	poller *poller.Poller
 }
 
 // GetGrillState -
