@@ -17,6 +17,6 @@ require (
 	go.uber.org/fx v1.13.1
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.18.1
-	gorm.io/driver/sqlite v1.1.4
-	gorm.io/gorm v1.21.12
+	gorm.io/driver/sqlite v1.2.6
+	gorm.io/gorm v1.22.3
 )
