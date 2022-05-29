@@ -5,7 +5,7 @@
 __Note: this was tested on my grill which is a Daniel Boone Prime purchased 
 in 2021. I'm  not sure if this will work properly on other models.__
 
-### Still a work in progress so feel free to assist with building this codebase, any help would be appreciated
+### Frontend stuff is still a work in progress so feel free to assist with building this codebase.
 
 ## Grill Client
 
