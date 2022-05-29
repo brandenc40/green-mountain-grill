@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/savsgio/gotils v0.0.0-20210617111740-97865ed5a873 // indirect
 	github.com/stretchr/testify v1.7.0
-	github.com/valyala/fasthttp v1.37.0 // indirect
+	github.com/valyala/fasthttp v1.37.0
 	go.uber.org/atomic v1.8.0 // indirect
 	go.uber.org/config v1.4.0
 	go.uber.org/fx v1.13.1
