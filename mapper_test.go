@@ -10,9 +10,10 @@ func TestGetGrillInfoResponseToGrillInfo(t *testing.T) {
 		response []byte
 	}
 	tests := []struct {
-		name string
-		args args
-		want *State
+		name        string
+		args        args
+		expectError bool
+		want        *State
 	}{
 		{
 			name: "power off",
@@ -44,11 +45,21 @@ func TestGetGrillInfoResponseToGrillInfo(t *testing.T) {
 				FireState:               FireStateColdSmoke,
 			},
 		},
+		{
+			name:        "error: unexpected EOF",
+			expectError: true,
+			args:        args{[]byte{0x55, 0x52}},
+			want:        nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := GetStateResponseToState(tt.args.response); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetStateResponseToState() = %v, want %v", got, tt.want)
+			got, err := BytesToState(tt.args.response)
+			if err != nil && !tt.expectError {
+				t.Errorf("BytesToState() returned an error: %v", err)
+			}
+			if !tt.expectError && !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("BytesToState() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -3,6 +3,7 @@ package grillclient
 import "go.uber.org/config"
 
 type Config struct {
+	IsMock    bool   `yaml:"is_mock"`
 	GrillIP   string `yaml:"grill_ip"`
 	GrillPort int    `yaml:"grill_port"`
 }

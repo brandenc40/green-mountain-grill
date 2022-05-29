@@ -14,7 +14,7 @@ const _PowerStateName = "PowerStateOffPowerStateOnPowerStateFanPowerStateColdSmo
 var _PowerStateIndex = [...]uint8{0, 13, 25, 38, 57}
 
 func (i PowerState) String() string {
-	if i < 0 || i >= PowerState(len(_PowerStateIndex)-1) {
+	if i >= PowerState(len(_PowerStateIndex)-1) {
 		return fmt.Sprintf("PowerState(%d)", i)
 	}
 	return _PowerStateName[_PowerStateIndex[i]:_PowerStateIndex[i+1]]

@@ -29,42 +29,69 @@ type Client interface {
 	PowerOff() error
 }
 
-// Params - Parameters to build a new Client
-type Params struct {
-	GrillIP         net.IP
-	GrillPort       int
-	Logger          *zap.Logger
-	ReadTimeout     time.Duration // default 2 seconds
-	WriteTimeout    time.Duration // default 1 second
-	MaxConnAttempts int           // default 5
+type Option interface {
+	apply(*grillClient)
+}
+
+// WithReadTimeout -
+func WithReadTimeout(timeout time.Duration) Option {
+	return readTimeoutOption{readTimeout: timeout}
+}
+
+type readTimeoutOption struct{ readTimeout time.Duration }
+
+func (r readTimeoutOption) apply(g *grillClient) { g.readTimeout = r.readTimeout }
+
+// WithWriteTimeout -
+func WithWriteTimeout(timeout time.Duration) Option {
+	return writeTimeoutOption{writeTimeout: timeout}
+}
+
+type writeTimeoutOption struct{ writeTimeout time.Duration }
+
+func (w writeTimeoutOption) apply(g *grillClient) { g.writeTimeout = w.writeTimeout }
+
+// WithMaxConnectionAttempts -
+func WithMaxConnectionAttempts(attempts int) Option {
+	return maxConnAttempts{attempts: attempts}
+}
+
+type maxConnAttempts struct{ attempts int }
+
+func (m maxConnAttempts) apply(g *grillClient) { g.maxConnAttempts = m.attempts }
+
+// WithZapLogger -
+func WithZapLogger(l *zap.Logger) Option {
+	return withZapLogger{logger: l}
+}
+
+type withZapLogger struct{ logger *zap.Logger }
+
+func (l withZapLogger) apply(g *grillClient) {
+	if l.logger != nil {
+		g.logger = l.logger
+	}
 }
 
 // New -
-func New(p Params) (Client, error) {
-	client := &grillClient{
-		grillAddr:       &net.UDPAddr{IP: p.GrillIP, Port: p.GrillPort},
-		logger:          p.Logger,
-		readTimeout:     p.ReadTimeout,
-		writeTimeout:    p.WriteTimeout,
-		maxConnAttempts: p.MaxConnAttempts,
+func New(grillIP net.IP, grillPort int, options ...Option) (Client, error) {
+	client := grillClient{
+		grillAddr:       &net.UDPAddr{IP: grillIP, Port: grillPort},
+		readTimeout:     _connReadDeadline,
+		writeTimeout:    _connWriteDeadline,
+		maxConnAttempts: _maxConnAttempts,
+	}
+	for _, option := range options {
+		option.apply(&client)
 	}
 	if client.logger == nil {
-		log, err := zap.NewDevelopment()
+		logger, err := zap.NewDevelopment()
 		if err != nil {
 			return nil, err
 		}
-		client.logger = log
+		client.logger = logger
 	}
-	if client.readTimeout == 0 {
-		client.readTimeout = _connReadDeadline
-	}
-	if client.writeTimeout == 0 {
-		client.writeTimeout = _connWriteDeadline
-	}
-	if client.maxConnAttempts == 0 {
-		client.maxConnAttempts = _maxConnAttempts
-	}
-	return client, nil
+	return &client, nil
 }
 
 type grillClient struct {
@@ -90,7 +117,7 @@ func (g *grillClient) GetState() (*State, error) {
 	if len(response) != 36 {
 		return nil, fmt.Errorf("expected 36 bytes, got %d", len(response))
 	}
-	return GetStateResponseToState(response), nil
+	return BytesToState(response)
 }
 
 // GetID -

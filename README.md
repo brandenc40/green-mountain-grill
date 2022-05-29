@@ -23,27 +23,17 @@ type Client interface {
 	PowerOnColdSmoke() error
 	PowerOff() error
 }
-
-// Params - Parameters to build a new Client
-type Params struct {
-	GrillIP         net.IP        // required
-	GrillPort       int           // required
-	Logger          *zap.Logger   // default zap.NewDevelopment()
-	ReadTimeout     time.Duration // default 2 seconds
-	WriteTimeout    time.Duration // default 1 second
-	MaxConnAttempts int           // default 5
-}
 ```
 
 Building a new client
 ```go
 import gmg "github.com/brandenc40/green-mountain-grill"
 
-params := gmg.Params{
-	GrillIP:   "192.168.1.2", // example, this will change
-	GrillPort: "8080", // this should be the same for all grills... I think...
-}
-client := gmg.New(params)
+client := gmg.New(
+	net.ParseIP("192.168.1.2"), // example, this will change
+	8080, // this should be the same for all grills... I think...
+	gmg.WithZapLogger(p.Logger),
+)
 ```
 
 ## Web Server

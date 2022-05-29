@@ -19,8 +19,8 @@ func (s *State) IsOn() bool {
 }
 
 // PowerState -
-//go:generate enumer -type=PowerState -json -sql
-type PowerState int
+//go:generate go run github.com/alvaroloes/enumer -type=PowerState -json -sql
+type PowerState uint8
 
 // PowerState enum values
 const (
@@ -31,23 +31,23 @@ const (
 )
 
 // FireState -
-//go:generate enumer -type=FireState -json -sql
-type FireState int
+//go:generate go run github.com/alvaroloes/enumer -type=FireState -json -sql
+type FireState uint8
 
 // FireState enum values
 const (
-	FireStateDefault FireState = iota
-	FireStateOff
-	FireStateStartup
-	FireStateRunning
-	FireStateCoolDown
-	FireStateFail
+	FireStateDefault   FireState = 0
+	FireStateOff       FireState = 1
+	FireStateStartup   FireState = 2
+	FireStateRunning   FireState = 3
+	FireStateCoolDown  FireState = 4
+	FireStateFail      FireState = 5
 	FireStateColdSmoke FireState = 198
 )
 
 // WarnCode -
-//go:generate enumer -type=WarnCode -json -sql
-type WarnCode int
+//go:generate go run github.com/alvaroloes/enumer -type=WarnCode -json -sql
+type WarnCode uint8
 
 // WarnCode enum values
 // TODO: VALIDATE, CURRENTLY NOT VALIDATED FOR ALL ERROR CODES

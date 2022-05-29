@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	contentTypeJSON = "application/json"
+	_contentTypeJSON = "application/json"
 )
 
 // Params -
@@ -55,11 +55,7 @@ func (h *Handler) GetGrillState(ctx *fiber.Ctx) error {
 		}
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
-	marshalled, err := json.Marshal(state)
-	if err != nil {
-		return err
-	}
-	return ctx.Status(fiber.StatusOK).Type(contentTypeJSON).Send(marshalled)
+	return ctx.JSON(state)
 }
 
 // GetGrillID -

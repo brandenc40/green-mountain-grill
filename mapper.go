@@ -1,51 +1,80 @@
 package gmg
 
-// State Bytes Locations
-// UR[2 Byte Grill Temp][2 Byte food probe Temp][2 Byte Target Temp][skip 22 bytes][2 Byte target food probe][1byte on/off/fan][5 byte tail]
-const (
-	grillTemp         = 2
-	grillTempHigh     = 3
-	probeTemp         = 4
-	probeTempHigh     = 5
-	grillSetTemp      = 6
-	grillSetTempHigh  = 7
-	probe2Temp        = 16
-	probe2TempHigh    = 17
-	probe2SetTemp     = 18
-	probe2SetTempHigh = 19
-	curveRemainTime   = 20 // not validated
-	warnCode          = 24
-	probeSetTemp      = 28
-	probeSetTempHigh  = 29
-	powerState        = 30
-	grillMode         = 31 // not validated
-	fireState         = 32
-	fileStatePercent  = 33 // not validated
-	profileEnd        = 34 // not validated
-	grillType         = 35 // not validated
+import (
+	"bytes"
+	"encoding/binary"
+	"fmt"
 )
 
-// GetStateResponseToState -
-func GetStateResponseToState(response []byte) *State {
-	state := &State{
-		WarnCode:                WarnCode(response[warnCode]),
-		PowerState:              PowerState(response[powerState]),
-		FireState:               FireState(response[fireState]),
-		CurrentTemperature:      getTempWithHighVal(response, grillTemp, grillTempHigh),
-		TargetTemperature:       getTempWithHighVal(response, grillSetTemp, grillSetTempHigh),
-		Probe1Temperature:       getTempWithHighVal(response, probeTemp, probeTempHigh),
-		Probe1TargetTemperature: getTempWithHighVal(response, probeSetTemp, probeSetTempHigh),
-		Probe2Temperature:       getTempWithHighVal(response, probe2Temp, probe2TempHigh),
-		Probe2TargetTemperature: getTempWithHighVal(response, probe2SetTemp, probe2SetTempHigh),
+func BytesToState(b []byte) (*State, error) {
+	fmt.Printf("%#v", b)
+	var m messageBody
+	err := binary.Read(bytes.NewReader(b), binary.LittleEndian, &m)
+	if err != nil {
+		return nil, err
 	}
-	return state
+	return &State{
+		WarnCode:                m.WarnCode,
+		PowerState:              m.PowerState,
+		FireState:               m.FireState,
+		CurrentTemperature:      m.CurrentTemperature(),
+		TargetTemperature:       m.TargetTemperature(),
+		Probe1Temperature:       m.Probe1Temperature(),
+		Probe1TargetTemperature: m.Probe1TargetTemperature(),
+		Probe2Temperature:       m.Probe2Temperature(),
+		Probe2TargetTemperature: m.Probe2TargetTemperature(),
+	}, nil
 }
 
-func getTempWithHighVal(data []byte, tmpIdx, highIdx int) int {
-	high := int(data[highIdx])
-	// a high value of 2 represents that the temp is not available
-	if high == 2 {
-		return 0
-	}
-	return int(data[tmpIdx]) + high*256
+// messageBody is the byte model of state response, 36 bytes are returned by the grill and
+// can be mapped to this struct.
+type messageBody struct {
+	URPlaceholder     uint16     // 0-1: `UR`
+	GrillTemp         uint8      // 2
+	GrillTempHigh     uint8      // 3
+	Probe1Temp        uint8      // 4
+	Probe1TempHigh    uint8      // 5
+	GrillSetTemp      uint8      // 6
+	GrillSetTempHigh  uint8      // 7
+	_                 [8]uint8   // 8-15: skip 8 bytes
+	Probe2Temp        uint8      // 16
+	Probe2TempHigh    uint8      // 17
+	Probe2SetTemp     uint8      // 18
+	Probe2SetTempHigh uint8      // 19
+	CurveRemainTime   uint8      // 20: not validated
+	_                 [3]uint8   // 21-23: skip 3 bytes
+	WarnCode          WarnCode   // 24
+	_                 [3]uint8   // 25-27: skip 3 bytes
+	Probe1SetTemp     uint8      // 28
+	Probe1SetTempHigh uint8      // 29
+	PowerState        PowerState // 30
+	GrillMode         uint8      // 31: not validated
+	FireState         FireState  // 32
+	FileStatePercent  uint8      // 33: not validated
+	ProfileEnd        uint8      // 34: not validated
+	GrillType         uint8      // 35: not validated
+}
+
+func (m messageBody) CurrentTemperature() int {
+	return getTempWithHighValue(m.GrillTemp, m.GrillTempHigh)
+}
+
+func (m messageBody) TargetTemperature() int {
+	return getTempWithHighValue(m.GrillSetTemp, m.GrillSetTempHigh)
+}
+
+func (m messageBody) Probe1Temperature() int {
+	return getTempWithHighValue(m.Probe1Temp, m.Probe1TempHigh)
+}
+
+func (m messageBody) Probe1TargetTemperature() int {
+	return getTempWithHighValue(m.Probe1SetTemp, m.Probe1SetTempHigh)
+}
+
+func (m messageBody) Probe2Temperature() int {
+	return getTempWithHighValue(m.Probe2Temp, m.Probe2TempHigh)
+}
+
+func (m messageBody) Probe2TargetTemperature() int {
+	return getTempWithHighValue(m.Probe2SetTemp, m.Probe2SetTempHigh)
 }
