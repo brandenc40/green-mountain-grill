@@ -84,4 +84,45 @@ type messageBody struct {
 	ProfileEnd        uint8      // 34: not validated
 	GrillType         uint8      // 35: not validated
 }
+
+// PowerState -
+type PowerState uint8
+
+// PowerState enum values
+const (
+	PowerStateOff PowerState = iota
+	PowerStateOn
+	PowerStateFan
+	PowerStateColdSmoke
+)
+
+// FireState -
+type FireState uint8
+
+// FireState enum values
+const (
+	FireStateDefault   FireState = 0
+	FireStateOff       FireState = 1
+	FireStateStartup   FireState = 2
+	FireStateRunning   FireState = 3
+	FireStateCoolDown  FireState = 4
+	FireStateFail      FireState = 5
+	FireStateColdSmoke FireState = 198
+)
+
+// WarnCode -
+type WarnCode int
+
+// WarnCode enum values
+const (
+	WarnCodeNone WarnCode = iota
+	WarnCodeFanOverload
+	WarnCodeAugerOverload
+	WarnCodeIgnitorOverload
+	WarnCodeLowVoltageBattery
+	WarnCodeFanDisconnect
+	WarnCodeAugerDisconnect
+	WarnCodeIgnitorDisconnect
+	WarnCodeLowPellet
+)
 ```
