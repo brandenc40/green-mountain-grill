@@ -114,7 +114,7 @@ func (g *grillClient) GetState() (*State, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(response) != 36 {
+	if len(response) < 36 {
 		return nil, fmt.Errorf("expected 36 bytes, got %d", len(response))
 	}
 	return BytesToState(response)
