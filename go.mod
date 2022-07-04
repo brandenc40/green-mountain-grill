@@ -14,7 +14,7 @@ require (
 	go.uber.org/config v1.4.0
 	go.uber.org/fx v1.13.1
 	go.uber.org/multierr v1.7.0 // indirect
-	go.uber.org/zap v1.18.1
+	go.uber.org/zap v1.21.0
 	golang.org/x/sys v0.0.0-20220704084225-05e143d24a9e // indirect
 	golang.org/x/tools v0.1.11 // indirect
 	gorm.io/driver/sqlite v1.1.4
