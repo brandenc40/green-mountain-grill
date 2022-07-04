@@ -50,30 +50,38 @@ Planned features to add:
 > for doing a lot of the leg work on figuring out the commands to send and the 
 > data returned by the grill.
 
-```
-EXAMPLE: GRILL OFF
-INDEX:  0  1  2  3 4  5 6   7 8 9  10 11 12 13 14 15 16 17 18 19 20  21  22  23  24 25 26 27 28 29 30 31 32 33 34 35
-BYTES: [85 82 97 0 89 2 150 0 5 11 20 50 25 25 25 25 89 2  0  0  255 255 255 255 0  0  0  0  0  0  0  0  1  0  0  3 ]
-
-VALUE INDICIES
-grillTemp         = 2
-grillTempHigh     = 3
-probeTemp         = 4
-probeTempHigh     = 5
-grillSetTemp      = 6
-grillSetTempHigh  = 7
-probe2Temp        = 16
-probe2TempHigh    = 17
-probe2SetTemp     = 18
-probe2SetTempHigh = 19
-curveRemainTime   = 20 // not validated
-warnCode          = 24
-probeSetTemp      = 28
-probeSetTempHigh  = 29
-powerState        = 30
-grillMode         = 31 // not validated
-fireState         = 32
-fileStatePercent  = 33 // not validated
-profileEnd        = 34 // not validated
-grillType         = 35 // not validated
+```go
+// messageBody is the byte model of state response, 36 bytes are returned by the grill and
+// can be mapped to this struct.
+type messageBody struct {
+	URPlaceholder     uint16     // 0-1: `UR`
+	GrillTemp         uint8      // 2
+	GrillTempHigh     uint8      // 3
+	Probe1Temp        uint8      // 4
+	Probe1TempHigh    uint8      // 5
+	GrillSetTemp      uint8      // 6
+	GrillSetTempHigh  uint8      // 7
+	APIVersion        uint8      // 8
+	FirmwareDetails   [7]uint8   // 9-15: not sure how to read this
+	Probe2Temp        uint8      // 16
+	Probe2TempHigh    uint8      // 17
+	Probe2SetTemp     uint8      // 18
+	Probe2SetTempHigh uint8      // 19
+	CurveRemainTime1  uint8      // 20: not sure how to use this
+	CurveRemainTime2  uint8      // 21: not sure how to use this
+	CurveRemainTime3  uint8      // 22: not sure how to use this
+	CurveRemainTime4  uint8      // 23: not sure how to use this
+	WarnCode1         uint8      // 24
+	WarnCode2         uint8      // 25
+	WarnCode3         uint8      // 26
+	WarnCode4         uint8      // 27
+	Probe1SetTemp     uint8      // 28
+	Probe1SetTempHigh uint8      // 29
+	PowerState        PowerState // 30
+	GrillMode         uint8      // 31: not validated
+	FireState         FireState  // 32
+	FileStatePercent  uint8      // 33: not validated
+	ProfileEnd        uint8      // 34: not validated
+	GrillType         uint8      // 35: not validated
+}
 ```
