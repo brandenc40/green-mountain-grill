@@ -12,7 +12,7 @@ require (
 	github.com/valyala/fasthttp v1.37.0 // indirect
 	go.uber.org/atomic v1.8.0 // indirect
 	go.uber.org/config v1.4.0
-	go.uber.org/fx v1.13.1
+	go.uber.org/fx v1.17.1
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.18.1
 	golang.org/x/sys v0.0.0-20220704084225-05e143d24a9e // indirect
