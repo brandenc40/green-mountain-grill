@@ -3,10 +3,12 @@ package gmg
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 )
 
 func BytesToState(b []byte) (*State, error) {
 	var m messageBody
+	fmt.Println(b)
 	err := binary.Read(bytes.NewReader(b), binary.LittleEndian, &m)
 	if err != nil {
 		return nil, err

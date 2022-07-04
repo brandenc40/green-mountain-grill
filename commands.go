@@ -7,7 +7,7 @@ type Command string
 
 // Commands that are accepted by the Green Mountain Grill
 const (
-	CommandGetInfo          Command = "URCV!"
+	CommandGetInfo          Command = "UR001!"
 	CommandGetGrillID       Command = "UL!"
 	CommandGetGrillFirmware Command = "UN!"
 	CommandSetGrillTemp     Command = "UT%03d!"

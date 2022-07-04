@@ -60,3 +60,7 @@ build-js:
 .PHONY: dev-react
 dev-react:
 	@npm run-script start -prefix $(FRONTEND_PATH)
+
+.PHONY: dev-go
+dev-go:
+	@go run cmd/server/main.go
