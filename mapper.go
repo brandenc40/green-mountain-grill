@@ -3,26 +3,26 @@ package gmg
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 )
 
 func BytesToState(b []byte) (*State, error) {
 	var m messageBody
-	fmt.Println(b)
 	err := binary.Read(bytes.NewReader(b), binary.LittleEndian, &m)
 	if err != nil {
 		return nil, err
 	}
 	return &State{
-		WarnCode:                m.WarnCode,
+		WarnCode:                m.WarnCode(),
 		PowerState:              m.PowerState,
 		FireState:               m.FireState,
+		CurveRemainTime:         m.CurveRemainTime(),
 		CurrentTemperature:      m.CurrentTemperature(),
 		TargetTemperature:       m.TargetTemperature(),
 		Probe1Temperature:       m.Probe1Temperature(),
 		Probe1TargetTemperature: m.Probe1TargetTemperature(),
 		Probe2Temperature:       m.Probe2Temperature(),
 		Probe2TargetTemperature: m.Probe2TargetTemperature(),
+		APIVersion:              m.APIVersion,
 	}, nil
 }
 
@@ -36,15 +36,20 @@ type messageBody struct {
 	Probe1TempHigh    uint8      // 5
 	GrillSetTemp      uint8      // 6
 	GrillSetTempHigh  uint8      // 7
-	_                 [8]uint8   // 8-15: skip 8 bytes
+	APIVersion        uint8      // 8
+	FirmwareDetails   [7]uint8   // 9-15: not sure how to read this
 	Probe2Temp        uint8      // 16
 	Probe2TempHigh    uint8      // 17
 	Probe2SetTemp     uint8      // 18
 	Probe2SetTempHigh uint8      // 19
-	CurveRemainTime   uint8      // 20: not validated
-	_                 [3]uint8   // 21-23: skip 3 bytes
-	WarnCode          WarnCode   // 24
-	_                 [3]uint8   // 25-27: skip 3 bytes
+	CurveRemainTime1  uint8      // 20: not sure how to use this
+	CurveRemainTime2  uint8      // 21: not sure how to use this
+	CurveRemainTime3  uint8      // 22: not sure how to use this
+	CurveRemainTime4  uint8      // 23: not sure how to use this
+	WarnCode1         uint8      // 24
+	WarnCode2         uint8      // 25
+	WarnCode3         uint8      // 26
+	WarnCode4         uint8      // 27
 	Probe1SetTemp     uint8      // 28
 	Probe1SetTempHigh uint8      // 29
 	PowerState        PowerState // 30
@@ -56,25 +61,33 @@ type messageBody struct {
 }
 
 func (m messageBody) CurrentTemperature() int {
-	return getTempWithHighValue(m.GrillTemp, m.GrillTempHigh)
+	return tempWithHighValue(m.GrillTemp, m.GrillTempHigh)
 }
 
 func (m messageBody) TargetTemperature() int {
-	return getTempWithHighValue(m.GrillSetTemp, m.GrillSetTempHigh)
+	return tempWithHighValue(m.GrillSetTemp, m.GrillSetTempHigh)
 }
 
 func (m messageBody) Probe1Temperature() int {
-	return getTempWithHighValue(m.Probe1Temp, m.Probe1TempHigh)
+	return tempWithHighValue(m.Probe1Temp, m.Probe1TempHigh)
 }
 
 func (m messageBody) Probe1TargetTemperature() int {
-	return getTempWithHighValue(m.Probe1SetTemp, m.Probe1SetTempHigh)
+	return tempWithHighValue(m.Probe1SetTemp, m.Probe1SetTempHigh)
 }
 
 func (m messageBody) Probe2Temperature() int {
-	return getTempWithHighValue(m.Probe2Temp, m.Probe2TempHigh)
+	return tempWithHighValue(m.Probe2Temp, m.Probe2TempHigh)
 }
 
 func (m messageBody) Probe2TargetTemperature() int {
-	return getTempWithHighValue(m.Probe2SetTemp, m.Probe2SetTempHigh)
+	return tempWithHighValue(m.Probe2SetTemp, m.Probe2SetTempHigh)
+}
+
+func (m messageBody) CurveRemainTime() [3]int {
+	return curveValue(fourByteConversion(m.CurveRemainTime1, m.CurveRemainTime2, m.CurveRemainTime3, m.CurveRemainTime4))
+}
+
+func (m messageBody) WarnCode() WarnCode {
+	return WarnCode(fourByteConversion(m.WarnCode1, m.WarnCode2, m.WarnCode3, m.WarnCode4))
 }

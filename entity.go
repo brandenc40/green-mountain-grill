@@ -8,9 +8,11 @@ type State struct {
 	Probe1TargetTemperature int        `json:"probe1_target_temperature"`
 	Probe2Temperature       int        `json:"probe2_temperature"`
 	Probe2TargetTemperature int        `json:"probe2_target_temperature"`
+	CurveRemainTime         [3]int     `json:"curve_remain_time"`
 	WarnCode                WarnCode   `json:"warn_code"`
 	PowerState              PowerState `json:"power_state"`
 	FireState               FireState  `json:"fire_state"`
+	APIVersion              uint8      `json:"api_version"`
 }
 
 // IsOn - true if the grill is turned on
@@ -47,15 +49,17 @@ const (
 
 // WarnCode -
 //go:generate go run github.com/alvaroloes/enumer -type=WarnCode -json -sql
-type WarnCode uint8
+type WarnCode int
 
 // WarnCode enum values
-// TODO: VALIDATE, CURRENTLY NOT VALIDATED FOR ALL ERROR CODES
 const (
-	WarnCodeNone               WarnCode = 0
-	WarnCodeFanMotorOverload   WarnCode = 1
-	WarnCodeAugerMotorOverload WarnCode = 2
-	WarnCodeLowVoltage         WarnCode = 4
-	WarnCodeIgniterOverload    WarnCode = 8
-	WarnCodeLowPellet          WarnCode = 128
+	WarnCodeNone WarnCode = iota
+	WarnCodeFanOverload
+	WarnCodeAugerOverload
+	WarnCodeIgnitorOverload
+	WarnCodeLowVoltageBattery
+	WarnCodeFanDisconnect
+	WarnCodeAugerDisconnect
+	WarnCodeIgnitorDisconnect
+	WarnCodeLowPellet
 )
