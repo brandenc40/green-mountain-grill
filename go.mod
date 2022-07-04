@@ -17,6 +17,6 @@ require (
 	go.uber.org/zap v1.18.1
 	golang.org/x/sys v0.0.0-20220704084225-05e143d24a9e // indirect
 	golang.org/x/tools v0.1.11 // indirect
-	gorm.io/driver/sqlite v1.1.4
-	gorm.io/gorm v1.21.12
+	gorm.io/driver/sqlite v1.3.5
+	gorm.io/gorm v1.23.4
 )
